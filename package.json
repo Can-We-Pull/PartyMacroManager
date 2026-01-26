@@ -1,22 +1,35 @@
 {
   "name": "party-macro-manager",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "WoW addon that auto-creates interrupt macros based on party position",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "node scripts/dev.js",
-    "build": "node scripts/build.js",
+    "dev": "node scripts/dev.cjs",
+    "build": "node scripts/build.cjs",
     "watch": "npm run dev",
-    "lint": "node scripts/lint.js",
-    "lint:fix": "node scripts/lint-fix.js",
+    "lint": "npm run lint:lua && npm run lint:js",
+    "lint:lua": "node scripts/lint.cjs",
+    "lint:js": "eslint scripts/**/*.{js,mjs}",
+    "lint:js:fix": "eslint scripts/**/*.{js,mjs} --fix",
+    "lint:fix": "npm run lint:js:fix && node scripts/lint-fix.mjs && npm run lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "package": "npm run build"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.3.1",
     "@commitlint/config-conventional": "^20.3.1",
+    "@eslint/js": "^9.39.2",
+    "@vitest/ui": "^4.0.18",
     "chokidar": "^3.6.0",
     "dotenv": "^16.4.5",
-    "luacheck": "^0.1.2"
+    "eslint": "^9.39.2",
+    "globals": "^17.1.0",
+    "luacheck": "^0.1.2",
+    "vitest": "^4.0.18"
   },
   "keywords": [
     "wow",

@@ -17,7 +17,7 @@ const colors = {
   green: '\x1b[32m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  cyan: '\x1b[36m',
+  cyan: '\x1b[36m'
 };
 
 const log = {
@@ -25,7 +25,7 @@ const log = {
   success: (msg) => console.log(`${colors.green}✓ ${msg}${colors.reset}`),
   info: (msg) => console.log(`${colors.blue}ℹ ${msg}${colors.reset}`),
   warn: (msg) => console.log(`${colors.yellow}⚠ ${msg}${colors.reset}`),
-  step: (msg) => console.log(`${colors.cyan}→ ${msg}${colors.reset}`),
+  step: (msg) => console.log(`${colors.cyan}→ ${msg}${colors.reset}`)
 };
 
 // Configuration
@@ -62,6 +62,19 @@ function updateTocVersion(version) {
     log.success(`Updated PartyMacroManager.toc to version v${version}`);
   } catch (error) {
     log.error(`Failed to update .toc file: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+// Update version in package.json file
+function updatePackageVersion(version) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
+    pkg.version = version;
+    fs.writeFileSync(PACKAGE_JSON, JSON.stringify(pkg, null, 2) + '\n');
+    log.success(`Updated package.json to version ${version}`);
+  } catch (error) {
+    log.error(`Failed to update package.json: ${error.message}`);
     process.exit(1);
   }
 }
@@ -144,6 +157,7 @@ function main() {
   console.log();
 
   try {
+    updatePackageVersion(version);
     updateTocVersion(version);
     cleanBuildDir();
     copySourceFiles();

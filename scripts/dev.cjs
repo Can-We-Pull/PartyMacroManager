@@ -19,7 +19,7 @@ const colors = {
   green: '\x1b[32m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  cyan: '\x1b[36m',
+  cyan: '\x1b[36m'
 };
 
 const log = {
@@ -27,7 +27,7 @@ const log = {
   success: (msg) => console.log(`${colors.green}✓ ${msg}${colors.reset}`),
   info: (msg) => console.log(`${colors.blue}ℹ ${msg}${colors.reset}`),
   warn: (msg) => console.log(`${colors.yellow}⚠ ${msg}${colors.reset}`),
-  file: (msg) => console.log(`${colors.cyan}→ ${msg}${colors.reset}`),
+  file: (msg) => console.log(`${colors.cyan}→ ${msg}${colors.reset}`)
 };
 
 // Configuration
@@ -95,7 +95,7 @@ function copyIfChanged(srcFile) {
   const destFile = path.join(WOW_RETAIL_PATH, relPath);
   const currentHash = getFileHash(srcFile);
 
-  if (!currentHash) return false;
+  if (!currentHash) {return false;}
 
   const cachedHash = fileHashes[srcFile];
   const destExists = fs.existsSync(destFile);
@@ -202,8 +202,8 @@ function main() {
     ignoreInitial: true,
     awaitWriteFinish: {
       stabilityThreshold: 100,
-      pollInterval: 50,
-    },
+      pollInterval: 50
+    }
   });
 
   watcher

@@ -14,7 +14,8 @@ PartyMacroManagerDB = PartyMacroManagerDB or {}
 local defaults = {
     macroIcon = "Ability_Hunter_SniperShot",
     customTexturePath = "",
-    chatVerbosity = "normal" -- "silent", "minimal", "normal", "verbose"
+    chatVerbosity = "normal", -- "silent", "minimal", "normal", "verbose"
+    pauseRecreation = false
 }
 
 for key, value in pairs(defaults) do
@@ -70,6 +71,11 @@ function PMM.GetMyPartyIndex()
 end
 
 function PMM.CreateOrUpdateMacro()
+    -- Check if recreation is paused
+    if PartyMacroManagerDB.pauseRecreation then
+        return
+    end
+
     local partyIndex = PMM.GetMyPartyIndex()
 
     if not partyIndex then
@@ -148,6 +154,38 @@ function PMM.ForceUpdate()
     PMM.CreateOrUpdateMacro()
 end
 
+function PMM.DeleteMacro()
+    local macroIndex = GetMacroIndexByName(MACRO_NAME)
+    if macroIndex and macroIndex ~= 0 then
+        DeleteMacro(MACRO_NAME)
+        lastPartyIndex = nil
+        if PartyMacroManagerDB.chatVerbosity ~= "silent" then
+            local msg = "|cff00ff00[" .. addonName .. "]|r Macro '" .. MACRO_NAME .. "' deleted."
+            print(msg)
+        end
+        return true
+    else
+        if PartyMacroManagerDB.chatVerbosity ~= "silent" then
+            local msg = "|cffff9900[" .. addonName .. "]|r Macro '" .. MACRO_NAME .. "' not found."
+            print(msg)
+        end
+        return false
+    end
+end
+
+function PMM.ClearSettings()
+    -- Reset to defaults
+    PartyMacroManagerDB.macroIcon = "Ability_Hunter_SniperShot"
+    PartyMacroManagerDB.customTexturePath = ""
+    PartyMacroManagerDB.chatVerbosity = "normal"
+    PartyMacroManagerDB.pauseRecreation = false
+
+    if PartyMacroManagerDB.chatVerbosity ~= "silent" then
+        local msg = "|cff00ff00[" .. addonName .. "]|r Settings reset to defaults."
+        print(msg)
+    end
+end
+
 -- Event handler
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("GROUP_ROSTER_UPDATE")
@@ -172,6 +210,11 @@ end)
 -- Periodic check to detect if macro was deleted by user
 -- This catches deletions that don't trigger events
 C_Timer.NewTicker(5, function()
+    -- Skip if recreation is paused
+    if PartyMacroManagerDB.pauseRecreation then
+        return
+    end
+
     -- Only check if we're in a party
     local partyIndex = PMM.GetMyPartyIndex()
     if partyIndex then
