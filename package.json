@@ -1,0 +1,30 @@
+{
+  "name": "party-macro-manager",
+  "version": "1.0.1",
+  "description": "WoW addon that auto-creates interrupt macros based on party position",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "build": "node scripts/build.js",
+    "watch": "npm run dev",
+    "lint": "node scripts/lint.js",
+    "lint:fix": "node scripts/lint-fix.js",
+    "package": "npm run build"
+  },
+  "devDependencies": {
+    "chokidar": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "luacheck": "^0.1.2"
+  },
+  "keywords": [
+    "wow",
+    "addon",
+    "world-of-warcraft"
+  ],
+  "author": "Darcilynn",
+  "license": "MIT",
+  "volta": {
+    "node": "22.22.0",
+    "npm": "11.8.0"
+  }
+}

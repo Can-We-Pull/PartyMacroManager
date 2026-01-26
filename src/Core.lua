@@ -32,102 +32,114 @@ local frame = CreateFrame("Frame")
 function PMM.GetMyPartyIndex()
     -- Returns 1-5 based on party position
     local numGroupMembers = GetNumGroupMembers() or 0
-    
+
     -- Not in a group, or in a raid
     if numGroupMembers == 0 or IsInRaid() then
         return nil
     end
-    
+
     -- Must be in a 5-player party
     if numGroupMembers > 5 then
         return nil
     end
-    
+
     -- Get player GUID
     local playerGUID = UnitGUID("player")
     local members = {}
-    
+
     table.insert(members, {guid = playerGUID, unit = "player"})
-    
+
     for i = 1, 4 do
         local unit = "party" .. i
         if UnitExists(unit) then
             table.insert(members, {guid = UnitGUID(unit), unit = unit})
         end
     end
-    
+
     -- Sort by GUID to get consistent ordering
     table.sort(members, function(a, b) return a.guid < b.guid end)
-    
+
     -- Find our index
     for i, member in ipairs(members) do
         if member.guid == playerGUID then
             return i
         end
     end
-    
+
     return nil
 end
 
 function PMM.CreateOrUpdateMacro()
     local partyIndex = PMM.GetMyPartyIndex()
-    
+
     if not partyIndex then
         if PartyMacroManagerDB.chatVerbosity ~= "silent" then
-            print("|cffff0000[" .. addonName .. "]|r Not in a 5-player party. Macro not created.")
+            local msg = "|cffff0000[" .. addonName .. "]|r Not in a 5-player party. "
+                .. "Macro not created."
+            print(msg)
         end
         lastPartyIndex = nil
         return
     end
-    
+
     -- Check if macro exists
     local macroIndex = GetMacroIndexByName(MACRO_NAME)
     local macroExists = macroIndex and macroIndex ~= 0
-    
+
     -- Skip update only if: position unchanged AND macro still exists
     if partyIndex == lastPartyIndex and macroExists then
         return -- No change, skip update
     end
-    
+
     local macroText = string.format(
         "/focus\n/tm %d\n/p Interrupting {rt%d}",
         partyIndex,
         partyIndex
     )
-    
+
     -- Determine which icon to use
     local selectedIcon
-    if PartyMacroManagerDB.customTexturePath and PartyMacroManagerDB.customTexturePath ~= "" then
-        selectedIcon = PartyMacroManagerDB.customTexturePath
+    local customPath = PartyMacroManagerDB.customTexturePath
+    if customPath and customPath ~= "" then
+        selectedIcon = customPath
     else
         selectedIcon = PartyMacroManagerDB.macroIcon or "Ability_Hunter_SniperShot"
     end
-    
+
     if not macroExists then
         -- Create new macro
-        local numGlobalMacros, numCharMacros = GetNumMacros()
+        local numGlobalMacros = GetNumMacros()
         if numGlobalMacros >= 36 then
-            print("|cffff0000[" .. addonName .. "]|r Cannot create macro - global macro limit reached!")
+            local msg = "|cffff0000[" .. addonName .. "]|r Cannot create macro - "
+                .. "global macro limit reached!"
+            print(msg)
             lastPartyIndex = nil
             return
         end
-        
+
         CreateMacro(MACRO_NAME, selectedIcon, macroText, nil)
-        
-        if PartyMacroManagerDB.chatVerbosity == "normal" or PartyMacroManagerDB.chatVerbosity == "verbose" then
-            print("|cff00ff00[" .. addonName .. "]|r Macro '" .. MACRO_NAME .. "' created for party position " .. partyIndex)
+
+        local verbosity = PartyMacroManagerDB.chatVerbosity
+        if verbosity == "normal" or verbosity == "verbose" then
+            local msg = "|cff00ff00[" .. addonName .. "]|r Macro '" .. MACRO_NAME
+                .. "' created for party position " .. partyIndex
+            print(msg)
         end
     else
         -- Update existing macro
         EditMacro(macroIndex, MACRO_NAME, selectedIcon, macroText)
-        
+
         if PartyMacroManagerDB.chatVerbosity == "verbose" then
-            print("|cff00ff00[" .. addonName .. "]|r Macro '" .. MACRO_NAME .. "' updated for party position " .. partyIndex)
+            local msg = "|cff00ff00[" .. addonName .. "]|r Macro '" .. MACRO_NAME
+                .. "' updated for party position " .. partyIndex
+            print(msg)
         elseif PartyMacroManagerDB.chatVerbosity == "normal" and lastPartyIndex ~= partyIndex then
-            print("|cff00ff00[" .. addonName .. "]|r Macro updated for party position " .. partyIndex)
+            local msg = "|cff00ff00[" .. addonName .. "]|r Macro updated for party position "
+                .. partyIndex
+            print(msg)
         end
     end
-    
+
     lastPartyIndex = partyIndex
 end
 
@@ -141,7 +153,7 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("GROUP_ROSTER_UPDATE")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-frame:SetScript("OnEvent", function(self, event, ...)
+frame:SetScript("OnEvent", function(_, event, ...)
     if event == "ADDON_LOADED" then
         local loadedAddon = ...
         if loadedAddon == "PartyMacroManager" then
@@ -166,8 +178,11 @@ C_Timer.NewTicker(5, function()
         local macroIndex = GetMacroIndexByName(MACRO_NAME)
         if not macroIndex or macroIndex == 0 then
             -- Macro was deleted, recreate it
-            if PartyMacroManagerDB.chatVerbosity == "normal" or PartyMacroManagerDB.chatVerbosity == "verbose" then
-                print("|cffff9900[" .. addonName .. "]|r Macro was deleted. Recreating...")
+            local verbosity = PartyMacroManagerDB.chatVerbosity
+            if verbosity == "normal" or verbosity == "verbose" then
+                local msg = "|cffff9900[" .. addonName .. "]|r Macro was deleted. "
+                    .. "Recreating..."
+                print(msg)
             end
             PMM.CreateOrUpdateMacro()
         end
@@ -185,4 +200,6 @@ SlashCmdList["PARTYMACRO"] = function(msg)
     end
 end
 
-print("|cff00ff00[" .. addonName .. "]|r Loaded. Use /partymacro or /pm to manually update. Use /pm config for options.")
+local loadMsg = "|cff00ff00[" .. addonName .. "]|r Loaded. Use /partymacro or /pm "
+    .. "to manually update. Use /pm config for options."
+print(loadMsg)

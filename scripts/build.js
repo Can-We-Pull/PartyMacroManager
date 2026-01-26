@@ -1,0 +1,158 @@
+#!/usr/bin/env node
+
+/**
+ * PartyMacroManager Build Script
+ * Creates a distributable zip file for the WoW addon
+ * Similar to a TypeScript production build
+ */
+
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+// Colors for terminal output
+const colors = {
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  cyan: '\x1b[36m',
+};
+
+const log = {
+  error: (msg) => console.error(`${colors.red}✗ ${msg}${colors.reset}`),
+  success: (msg) => console.log(`${colors.green}✓ ${msg}${colors.reset}`),
+  info: (msg) => console.log(`${colors.blue}ℹ ${msg}${colors.reset}`),
+  warn: (msg) => console.log(`${colors.yellow}⚠ ${msg}${colors.reset}`),
+  step: (msg) => console.log(`${colors.cyan}→ ${msg}${colors.reset}`),
+};
+
+// Configuration
+const PROJECT_ROOT = path.resolve(__dirname, '..');
+const SRC_DIR = path.join(PROJECT_ROOT, 'src');
+const BUILD_DIR = path.join(PROJECT_ROOT, 'PartyMacroManager');
+const TOC_FILE = path.join(SRC_DIR, 'PartyMacroManager.toc');
+const PACKAGE_JSON = path.join(PROJECT_ROOT, 'package.json');
+const OUTPUT_ZIP = path.join(PROJECT_ROOT, 'PartyMacroManager.zip');
+
+// Get version from command line or package.json
+function getVersion() {
+  const args = process.argv.slice(2);
+  
+  if (args.length > 0) {
+    return args[0];
+  }
+
+  // Read from package.json
+  try {
+    const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
+    return pkg.version;
+  } catch (error) {
+    log.error('Could not read version from package.json');
+    process.exit(1);
+  }
+}
+
+// Update version in .toc file
+function updateTocVersion(version) {
+  try {
+    let tocContent = fs.readFileSync(TOC_FILE, 'utf8');
+    tocContent = tocContent.replace(/^## Version: .*/m, `## Version: v${version}`);
+    fs.writeFileSync(TOC_FILE, tocContent);
+    log.success(`Updated PartyMacroManager.toc to version v${version}`);
+  } catch (error) {
+    log.error(`Failed to update .toc file: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+// Clean build artifacts
+function cleanBuildDir() {
+  log.step('Cleaning build artifacts...');
+  
+  if (fs.existsSync(BUILD_DIR)) {
+    fs.rmSync(BUILD_DIR, { recursive: true, force: true });
+  }
+  
+  if (fs.existsSync(OUTPUT_ZIP)) {
+    fs.unlinkSync(OUTPUT_ZIP);
+  }
+  
+  log.success('Cleaned build directory');
+}
+
+// Copy source files to build directory
+function copySourceFiles() {
+  log.step('Copying source files...');
+  
+  function copyRecursive(src, dest) {
+    if (!fs.existsSync(dest)) {
+      fs.mkdirSync(dest, { recursive: true });
+    }
+
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const srcPath = path.join(src, entry.name);
+      const destPath = path.join(dest, entry.name);
+
+      if (entry.isDirectory()) {
+        copyRecursive(srcPath, destPath);
+      } else {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    }
+  }
+
+  copyRecursive(SRC_DIR, BUILD_DIR);
+  log.success('Copied source files');
+}
+
+// Create zip file
+function createZip() {
+  log.step('Creating zip archive...');
+  
+  try {
+    // Use zip command if available, otherwise use a Node.js alternative
+    const cwd = PROJECT_ROOT;
+    execSync('zip -r PartyMacroManager.zip PartyMacroManager/', { cwd, stdio: 'pipe' });
+    log.success('Created PartyMacroManager.zip');
+  } catch (error) {
+    log.error(`Failed to create zip: ${error.message}`);
+    log.warn('Make sure "zip" command is installed, or install archiver package for pure Node.js solution');
+    process.exit(1);
+  }
+}
+
+// Main build function
+function main() {
+  console.log(`${colors.cyan}╔════════════════════════════════════════╗${colors.reset}`);
+  console.log(`${colors.cyan}║  PartyMacroManager Build              ║${colors.reset}`);
+  console.log(`${colors.cyan}╚════════════════════════════════════════╝${colors.reset}`);
+  console.log();
+
+  const version = getVersion();
+  log.info(`Building version: ${version}`);
+  console.log();
+
+  try {
+    updateTocVersion(version);
+    cleanBuildDir();
+    copySourceFiles();
+    createZip();
+    
+    // Clean up build directory after zipping
+    fs.rmSync(BUILD_DIR, { recursive: true, force: true });
+    
+    console.log();
+    log.success(`Build complete! PartyMacroManager.zip created with version v${version}`);
+    log.info(`Location: ${OUTPUT_ZIP}`);
+  } catch (error) {
+    log.error(`Build failed: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+// Run the script
+main();
