@@ -4,13 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html', 'lcov'],
-      include: ['scripts/**/*.{js,cjs,mjs}'],
-      exclude: ['scripts/**/*.test.js']
-    },
-    include: ['scripts/**/*.test.js'],
+    include: ['bundlesize.test.js'],
     reporters: ['verbose']
   }
 });

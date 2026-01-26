@@ -7,7 +7,7 @@ Auto-creates interrupt macros based on party position for World of Warcraft.
 
 ## Development Setup
 
-This project uses a **Node.js-based toolchain** (similar to TypeScript projects) for a familiar development experience, even though the addon itself is written in Lua.
+This project uses **TypeScript-to-Lua (TSTL)** for type-safe World of Warcraft addon development. The project is transitioning from a hybrid TypeScript/Lua approach to a **pure TypeScript** implementation with a modern build system.
 
 ### Prerequisites
 
@@ -25,8 +25,6 @@ curl https://get.volta.sh | bash
 # Download and run the installer from https://volta.sh
 ```
 
-> **Note:** StyLua (Lua formatter) is installed as an npm dev dependency and runs via `npx` - no additional installation needed!
-
 ### Getting Started
 
 1. **Install dependencies:**
@@ -34,47 +32,63 @@ curl https://get.volta.sh | bash
    npm install
    ```
 
-2. **Configure your WoW path:**
+2. **(Optional) Configure custom WoW path:**
+   
+   If you have multiple WoW installations or a non-standard path, create a `.env.local` file:
    ```bash
    cp .env.local.example .env.local
    ```
    
-   Edit `.env.local` and set your WoW **_retail_** folder path (NOT the AddOns folder):
+   Edit `.env.local` and set your WoW client root path:
    ```bash
+   # Point to the root of your client version (_retail_, _classic_era_, _classic_)
    # The script automatically appends /Interface/AddOns/PartyMacroManager
    WOW_RETAIL_PATH=/path/to/World of Warcraft/_retail_
    
-   # WSL example (no escaped spaces needed):
+   # WSL example:
    WOW_RETAIL_PATH=/mnt/c/Program Files (x86)/World of Warcraft/_retail_
    ```
+   
+   If you don't create `.env.local`, the dev script will auto-detect your WoW installation.
 
 3. **Start development mode:**
    ```bash
    npm run dev
    ```
    
-   This will watch your source files and automatically copy changes to your WoW addon directory.
+   This will:
+   - Transpile TypeScript to Lua automatically using TSTL
+   - Watch for changes in `src/` (`.ts` files)
+   - Auto-detect your WoW addon directory (or use your `.env.local` path)
+   - Sync transpiled Lua files to your WoW addon directory
+   - Generate the `.toc` file from `package.json`
+
+4. **Build for distribution:**
+   ```bash
+   npm run build
+   ```
+   
+   This creates a production build in `dist/`:
+   - `dist/dev/` - Development files (ready to copy to WoW)
+   - `dist/PartyMacroManager-<version>.zip` - Distribution package
 
 ## Available Scripts
 
 ### Development
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start watch mode - automatically syncs changes to WoW |
+| `npm run dev` | Start watch mode - transpile TS and sync to WoW |
 | `npm run build` | Create a production build (zip file for distribution) |
 | `npm run build 1.2.3` | Build with a specific version number |
+| `npm run transpile` | Transpile TypeScript to Lua once |
 
 ### Testing & Quality
 | Command | Description |
 |---------|-------------|
-| `npm test` | Run all tests with Vitest |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run test:ui` | Open Vitest UI in browser |
-| `npm run test:coverage` | Generate test coverage report |
-| `npm run format` | Format Lua code with StyLua |
-| `npm run format:check` | Check if Lua code is formatted correctly |
-| `npm run lint` | Run all linters (Lua + JavaScript) |
-| `npm run lint:lua` | Run Lua linter only |
+| `npm test` | Run bundle size regression test |
+| `npm run test:update-baseline` | Update bundle size baseline (after intentional changes) |
+| `npm run lint` | Run all linters (TypeScript + JavaScript) |
+| `npm run lint:ts` | TypeScript type checking only |
 | `npm run lint:js` | Run JavaScript/ESLint only |
 | `npm run lint:workflows` | Lint GitHub Actions workflow files |
 | `npm run lint:fix` | Auto-format and fix all issues |
@@ -83,41 +97,142 @@ curl https://get.volta.sh | bash
 
 ```
 PartyMacroManager/
-├── src/                    # Source files (Lua code)
-│   ├── Core.lua           # Main addon logic
-│   ├── Settings.lua       # Settings panel
-│   └── *.toc              # Addon metadata
-├── scripts/               # Build and dev tools (Node.js)
-│   ├── dev.cjs           # Watch mode script
-│   ├── build.cjs         # Production build script
-│   ├── lint.cjs          # Lua linting script
-│   └── format.cjs        # Lua formatting script
-├── .env.local            # Your local WoW path (not in git)
-├── .env.local.example    # Example environment config
-├── .luacheckrc           # Lua linting configuration
-├── .stylua.toml          # Lua formatting configuration
-├── eslint.config.mjs     # JavaScript linting configuration
-├── vitest.config.js      # Test runner configuration
-├── commitlint.config.cjs # Commit message linting
-└── package.json          # Project dependencies and scripts
+├── src/                                # TypeScript source files
+│   ├── index.ts                       # Entry point - instantiates addon
+│   ├── PartyMacroManager.ts           # Main addon class
+│   ├── types.ts                       # Shared type definitions
+│   ├── wow-api.d.ts                   # WoW API type definitions
+│   ├── settings/                      # Settings UI classes
+│   │   ├── SettingsPanel.ts           # Settings panel coordinator
+│   │   ├── IconSelectionPanel.ts      # Icon picker UI
+│   │   ├── CustomTexturePanel.ts      # Custom texture input UI
+│   │   ├── ChatVerbosityPanel.ts      # Chat verbosity selector UI
+│   │   └── AdvancedControlsPanel.ts   # Advanced controls UI
+│   └── data/                          # Data files
+│       └── iconOptions.json           # Icon presets configuration
+├── dist/                               # Build output (generated)
+│   ├── dev/                           # Development build
+│   │   ├── index.lua                  # Bundled transpiled TypeScript
+│   │   └── *.toc                      # Generated .toc file
+│   └── PartyMacroManager-<version>.zip  # Distribution package
+├── scripts/                            # Build tools (ES modules)
+│   ├── dev.mjs                        # Watch mode with auto-sync
+│   └── build.mjs                      # Production build with .toc generation
+├── docs/                               # Documentation
+│   ├── ARCHITECTURE.md                # Architecture overview
+│   └── JAVASCRIPT_TOOLING.md          # Build system documentation
+├── tsconfig.json                       # TypeScript-to-Lua configuration
+├── eslint.config.mjs                   # JavaScript linting configuration
+├── vitest.config.js                    # Test runner configuration
+├── commitlint.config.cjs               # Commit message linting
+└── package.json                        # Project dependencies and scripts
 ```
+
+## Architecture
+
+This addon is built with a **clean, class-based architecture** using TypeScript:
+
+- **PartyMacroManager**: Main addon class managing core functionality
+- **SettingsPanel**: Coordinator for all settings UI components
+- **Panel Components**: Self-contained, composable UI classes
+- **No side-effect imports**: Explicit instantiation for predictable behavior
+- **Single bundle output**: All code compiled to one `index.lua` file
+
+For detailed architecture documentation, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Development Workflow
 
-### Watch Mode (Like TypeScript --watch)
+### TypeScript-to-Lua Transpilation
+
+This project uses **TypeScript-to-Lua** for type-safe WoW addon development:
+
+```typescript
+// src/PartyMacroManager.ts
+export class PartyMacroManager {
+  private db: SavedVariables;
+  
+  public getMyPartyIndex(): number | null {
+    const numGroupMembers = GetNumGroupMembers() || 0;
+    // TypeScript provides full type safety and IntelliSense
+    return IsInRaid() ? 1 : null;
+  }
+}
+```
+
+Transpiles to clean, idiomatic Lua:
+
+```lua
+-- Bundled in dist/dev/index.lua
+PartyMacroManager = __TS__Class()
+function PartyMacroManager.prototype.getMyPartyIndex(self)
+  local numGroupMembers = GetNumGroupMembers() or 0
+  return IsInRaid() and 1 or nil
+end
+```
+
+**Benefits:**
+- ✅ Full TypeScript type safety with class-based design
+- ✅ Compile-time error checking
+- ✅ Comprehensive WoW API type definitions (`wow-api.d.ts`)
+- ✅ Modern ES6+ syntax (classes, arrow functions, const/let, template strings)
+- ✅ Proper encapsulation and separation of concerns
+- ✅ Automated `.toc` file generation from `package.json`
+- ✅ Single bundled output for clean distribution
+- ✅ Clean, idiomatic Lua output
+
+### Build System
+
+The project uses a modern build system with:
+
+- **TypeScript-to-Lua with bundling** - Transpiles TypeScript to single Lua 5.1 bundle
+- **Automated .toc generation** - Reads metadata from `package.json` addon section
+- **Auto-detection** - Finds your WoW addon directory (Windows/macOS/Linux/Wine/Bottles)
+- **Distribution packaging** - Creates `.zip` files ready for CurseForge/Wago
+
+#### Addon Metadata
+
+The `.toc` file is automatically generated from `package.json`:
+
+```json
+{
+  "version": "1.1.0",
+  "addon": {
+    "title": "Party Macro Manager",
+    "notes": "Auto-creates interrupt macros based on party position",
+    "author": "Darcilynn",
+    "interface": ["120000", "110207", "50503", "38000", "20505", "11508"],
+    "savedVariables": ["PartyMacroManagerDB"],
+    "loadOrder": ["index.lua"]
+  }
+}
+```
+
+### Watch Mode
 ```bash
 npm run dev
 ```
-- Watches `src/` for changes
-- Uses SHA256 caching to avoid unnecessary copies
-- Automatically syncs to your WoW addon directory
-- Cross-platform (works on Windows, macOS, Linux)
+- Watches `src/` for TypeScript changes
+- Automatically transpiles TypeScript to Lua using TSTL
+- Syncs transpiled files to WoW addon directory
+- Generates `.toc` file
+- Cross-platform (works on Windows, macOS, Linux, Wine, Bottles)
 
 ### VS Code Integration
 
 The project includes VS Code configuration for an optimal development experience:
 
-- **IntelliSense** - Lua Language Server with WoW API globals configured
+- **IntelliSense** - Full TypeScript IntelliSense with WoW API type definitions
+- **Type Checking** - Real-time TypeScript error detection
+- **Inline Linting** - See lint errors directly in the editor as you type
+- **Tasks** - Run common commands from VS Code's task runner (Cmd/Ctrl+Shift+P → "Tasks: Run Task")
+  - Watch & Sync to WoW
+  - Transpile TypeScript
+  - Lint TypeScript Files
+  - Build Addon
+
+**Recommended Extensions** (VS Code will prompt to install):
+- `typescript` - TypeScript language support (built-in)
+- `usernamehw.errorlens` - Shows errors inline in the editor
 - **Inline Linting** - See lint errors directly in the editor as you type
 - **Tasks** - Run common commands from VS Code's task runner (Cmd/Ctrl+Shift+P → "Tasks: Run Task")
   - Watch & Sync to WoW
@@ -144,16 +259,14 @@ npm run build 1.2.3
 
 ## Testing & Code Quality
 
-### Running Tests
-The project uses **Vitest** for fast, modern JavaScript testing:
+### Bundle Size Testing
+The project includes automated bundle size regression testing to prevent unintended growth:
 ```bash
-npm test                  # Run all tests
-npm run test:watch        # Watch mode for development
-npm run test:ui           # Visual test interface
-npm run test:coverage     # Generate coverage report
+npm test                        # Check bundle size against baseline
+npm run test:update-baseline    # Update baseline after intentional changes
 ```
 
-All tests run automatically in CI/CD on every pull request.
+The test will fail if the bundle size increases by more than 5% from the baseline. All tests run automatically in CI/CD on every pull request.
 
 ### Linting
 The project includes comprehensive linting for both Lua and JavaScript:
@@ -237,28 +350,96 @@ The project uses GitHub Actions for automated quality checks and releases:
 
 Most WoW addon developers use:
 - Manual file copying or symlinks
+- Direct Lua editing without type safety
 - Shell scripts for builds
 - No dependency management
 
-This project uses a **modern JavaScript workflow**:
+This project uses a **modern TypeScript-to-Lua workflow**:
+- ✅ **TypeScript-to-Lua (TSTL)** - Write type-safe TypeScript, compile to Lua
+- ✅ Full IntelliSense and compile-time error checking
+- ✅ Custom WoW API type definitions for autocomplete
 - ✅ `package.json` for scripts and dependencies
 - ✅ `npm run` commands (familiar from React, Angular, Vue, etc.)
-- ✅ Automatic file watching with caching
+- ✅ Automatic transpilation and file watching
 - ✅ Cross-platform compatibility (Windows, macOS, Linux)
 - ✅ Environment-based configuration (`.env.local`)
-- ✅ Professional testing with Vitest (25 tests, 100% passing)
-- ✅ Code quality with ESLint + luacheck
+- ✅ Professional testing with Vitest
+- ✅ Code quality with TypeScript + ESLint
 - ✅ Automated CI/CD with GitHub Actions
 
-## Why This Approach?
+## Why TypeScript-to-Lua?
 
-If you're coming from TypeScript/JavaScript, this setup will feel familiar:
-- Same commands (`npm run dev`, `npm run build`)
-- Same patterns (`.env` files, `node_modules/`, `.gitignore`)
-- Same tools (Node.js, npm)
-- File watching works the same as `tsc --watch`
+If you're coming from TypeScript/JavaScript, this setup will feel natural:
+- **Type Safety**: Catch errors at compile time, not runtime in WoW
+- **Better DX**: Full IntelliSense, autocomplete, and refactoring support
+- **Modern Syntax**: Use ES6+ features (arrow functions, const/let, template strings)
+- **WoW API Types**: Custom type definitions for WoW's API
+- **Same Commands**: `npm run dev`, `npm run build`, `npm test`
+- **Same Patterns**: `.env` files, `node_modules/`, `.gitignore`
+- **Watch Mode**: Works the same as `tsc --watch`
 
-The Lua code itself isn't transpiled—it's copied directly to WoW. But the **developer experience** matches modern JavaScript tooling.
+The TypeScript code is transpiled to clean, readable Lua that runs natively in WoW. The **developer experience** is modern TypeScript, but the runtime is standard Lua.
+
+### TypeScript Example
+
+```typescript
+// TypeScript with full type safety
+PMM.GetMyPartyIndex = function (): number | null {
+  const numGroupMembers = GetNumGroupMembers() || 0;
+  
+  if (numGroupMembers === 0 || IsInRaid()) {
+    return 1;
+  }
+  
+  const playerGUID = UnitGUID("player");
+  const members: Array<{ guid: string; unit: string }> = [];
+  
+  members.push({ guid: playerGUID, unit: "player" });
+  
+  for (let i = 1; i <= 4; i++) {
+    const unit = `party${i}`;
+    if (UnitExists(unit)) {
+      members.push({ guid: UnitGUID(unit), unit });
+    }
+  }
+  
+  table.sort(members, (a, b) => a.guid < b.guid);
+  
+  for (let i = 0; i < members.length; i++) {
+    if (members[i].guid === playerGUID) {
+      return i + 1;
+    }
+  }
+  
+  return null;
+};
+```
+
+Transpiles to clean Lua:
+```lua
+PMM.GetMyPartyIndex = function()
+    local numGroupMembers = GetNumGroupMembers() or 0
+    if (numGroupMembers == 0) or IsInRaid() then
+        return 1
+    end
+    local playerGUID = UnitGUID("player")
+    local members = {}
+    table.insert(members, {guid = playerGUID, unit = "player"})
+    for i = 1, 4 do
+        local unit = ("party" .. tostring(i))
+        if UnitExists(unit) then
+            table.insert(members, {guid = UnitGUID(unit), unit = unit})
+        end
+    end
+    table.sort(members, function(a, b) return a.guid < b.guid end)
+    for i = 0, #members - 1 do
+        if members[i + 1].guid == playerGUID then
+            return i + 1
+        end
+    end
+    return nil
+end
+```
 
 ## License
 

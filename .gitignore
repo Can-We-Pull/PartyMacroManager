@@ -4,3 +4,5 @@ PartyMacroManager*.zip
 node_modules/
 .dev-cache.json
 .vscode
+dist/
+*.lua.map
