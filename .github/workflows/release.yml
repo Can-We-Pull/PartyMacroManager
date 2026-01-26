@@ -25,12 +25,21 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: main
+          noVersionBumpBehavior: current
+          noNewCommitBehavior: current
+        continue-on-error: true
           
       - name: Set version output
         id: version
         run: |
-          echo "VERSION=${{ steps.semver.outputs.next }}" >> $GITHUB_OUTPUT
-          echo "Next version will be: ${{ steps.semver.outputs.next }}"
+          if [ -z "${{ steps.semver.outputs.next }}" ]; then
+            # No tags exist, start with 1.0.0
+            VERSION="1.0.0"
+          else
+            VERSION="${{ steps.semver.outputs.next }}"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Next version will be: $VERSION"
       
       - name: Configure Git
         run: |
