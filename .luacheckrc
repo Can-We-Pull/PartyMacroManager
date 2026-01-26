@@ -17,6 +17,9 @@ globals = {
     "SLASH_PARTYMACRO2",
     "SlashCmdList",
     
+    -- Testing framework
+    "WoWUnit",
+    
     -- WoW Frame API
     "CreateFrame",
     "UIParent",
@@ -88,3 +91,11 @@ exclude_files = {
 
 -- Maximum line length (similar to ESLint max-len)
 max_line_length = 120
+
+-- Test file specific settings
+files["tests/**/*.lua"] = {
+    -- Allow unused self argument (WoWUnit test pattern)
+    unused_args = false,
+    -- Allow unused variables (test helpers may not all be used)
+    unused = false,
+}

@@ -1,0 +1,22 @@
+[
+  { "name": "Crosshair", "texture": "Ability_Hunter_SniperShot" },
+  { "name": "Eye", "texture": "Spell_Shadow_EvilEye" },
+  { "name": "Target", "texture": "Ability_Hunter_MarkedForDeath" },
+  { "name": "Focus", "texture": "Ability_Hunter_MasterMarksman" },
+  { "name": "Star", "texture": "Interface\\TargetingFrame\\UI-RaidTargetingIcon_1" },
+  { "name": "Circle", "texture": "Interface\\TargetingFrame\\UI-RaidTargetingIcon_2" },
+  { "name": "Diamond", "texture": "Interface\\TargetingFrame\\UI-RaidTargetingIcon_3" },
+  { "name": "Triangle", "texture": "Interface\\TargetingFrame\\UI-RaidTargetingIcon_4" },
+  { "name": "Moon", "texture": "Interface\\TargetingFrame\\UI-RaidTargetingIcon_5" },
+  { "name": "Square", "texture": "Interface\\TargetingFrame\\UI-RaidTargetingIcon_6" },
+  { "name": "Red X", "texture": "Interface\\TargetingFrame\\UI-RaidTargetingIcon_7" },
+  { "name": "Skull", "texture": "Interface\\TargetingFrame\\UI-RaidTargetingIcon_8" },
+  { "name": "Aimed Shot", "texture": "INV_Spear_07" },
+  { "name": "Arrow", "texture": "Ability_Marksmanship" },
+  { "name": "Precision", "texture": "INV_Misc_Dice_02" },
+  { "name": "Scope", "texture": "INV_Misc_Spyglass_03" },
+  { "name": "Lock On", "texture": "Ability_Hunter_MasterMarksman" },
+  { "name": "Sights", "texture": "Ability_Hunter_SniperShot" },
+  { "name": "Tracking", "texture": "Ability_Hunter_SniperTraining" },
+  { "name": "Mark", "texture": "Ability_Hunter_MasterMarksman" }
+]

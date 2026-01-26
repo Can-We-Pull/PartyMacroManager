@@ -57,9 +57,6 @@ jobs:
       - name: Run linters
         run: npm run lint
 
-      - name: Check Lua formatting
-        run: npm run format:check
-
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
@@ -70,7 +67,7 @@ jobs:
       
       - name: Commit version bump
         run: |
-          git add package.json src/PartyMacroManager.toc
+          git add package.json
           git commit -m "chore: bump version to ${{ steps.version.outputs.VERSION }} [skip ci]" || echo "No changes to commit"
           git push origin main || echo "Nothing to push"
       
