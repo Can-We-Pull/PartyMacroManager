@@ -72,17 +72,21 @@ end
 function PMM.CreateOrUpdateMacro()
     local partyIndex = PMM.GetMyPartyIndex()
     
-    -- Check if party index actually changed
-    if partyIndex == lastPartyIndex then
-        return -- No change, skip update
-    end
-    
     if not partyIndex then
         if PartyMacroManagerDB.chatVerbosity ~= "silent" then
             print("|cffff0000[" .. addonName .. "]|r Not in a 5-player party. Macro not created.")
         end
         lastPartyIndex = nil
         return
+    end
+    
+    -- Check if macro exists
+    local macroIndex = GetMacroIndexByName(MACRO_NAME)
+    local macroExists = macroIndex and macroIndex ~= 0
+    
+    -- Skip update only if: position unchanged AND macro still exists
+    if partyIndex == lastPartyIndex and macroExists then
+        return -- No change, skip update
     end
     
     local macroText = string.format(
@@ -99,10 +103,7 @@ function PMM.CreateOrUpdateMacro()
         selectedIcon = PartyMacroManagerDB.macroIcon or "Ability_Hunter_SniperShot"
     end
     
-    -- Check if macro exists
-    local macroIndex = GetMacroIndexByName(MACRO_NAME)
-    
-    if not macroIndex or macroIndex == 0 then
+    if not macroExists then
         -- Create new macro
         local numGlobalMacros, numCharMacros = GetNumMacros()
         if numGlobalMacros >= 36 then
@@ -153,6 +154,23 @@ frame:SetScript("OnEvent", function(self, event, ...)
     elseif event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then
         -- Small delay to ensure group data is ready
         C_Timer.After(0.5, PMM.CreateOrUpdateMacro)
+    end
+end)
+
+-- Periodic check to detect if macro was deleted by user
+-- This catches deletions that don't trigger events
+C_Timer.NewTicker(5, function()
+    -- Only check if we're in a party
+    local partyIndex = PMM.GetMyPartyIndex()
+    if partyIndex then
+        local macroIndex = GetMacroIndexByName(MACRO_NAME)
+        if not macroIndex or macroIndex == 0 then
+            -- Macro was deleted, recreate it
+            if PartyMacroManagerDB.chatVerbosity == "normal" or PartyMacroManagerDB.chatVerbosity == "verbose" then
+                print("|cffff9900[" .. addonName .. "]|r Macro was deleted. Recreating...")
+            end
+            PMM.CreateOrUpdateMacro()
+        end
     end
 end)
 
