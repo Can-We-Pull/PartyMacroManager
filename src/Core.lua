@@ -35,12 +35,12 @@ function PMM.GetMyPartyIndex()
 
     -- Not in a group, or in a raid
     if numGroupMembers == 0 or IsInRaid() then
-        return nil
+        return 1
     end
 
     -- Must be in a 5-player party
     if numGroupMembers > 5 then
-        return nil
+        return 1
     end
 
     -- Get player GUID
