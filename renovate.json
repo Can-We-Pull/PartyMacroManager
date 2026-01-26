@@ -1,0 +1,66 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "timezone": "America/Los_Angeles",
+  "schedule": [
+    "* 0-4 * * 1-5"
+  ],
+  "labels": ["dependencies"],
+  "commitMessagePrefix": "chore(deps):",
+  "semanticCommits": "enabled",
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "description": "Auto-merge Node.js and npm version updates (Volta toolchain)",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["volta"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "commitMessagePrefix": "chore(toolchain):",
+      "labels": ["dependencies", "toolchain", "automerge"]
+    },
+    {
+      "description": "Auto-merge dev dependencies",
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true,
+      "automergeType": "pr",
+      "commitMessagePrefix": "chore(deps-dev):",
+      "labels": ["dependencies", "devDependencies", "automerge"]
+    },
+    {
+      "description": "Group GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "automerge": true,
+      "automergeType": "pr",
+      "commitMessagePrefix": "chore(ci):",
+      "labels": ["dependencies", "github-actions", "automerge"]
+    },
+    {
+      "description": "Ignore luacheck - managed via luarocks",
+      "matchPackageNames": ["luacheck"],
+      "enabled": false
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "automerge": true,
+    "automergeType": "pr",
+    "commitMessagePrefix": "fix(security):"
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "automergeType": "pr",
+    "schedule": ["* 0-4 * * 1-5"],
+    "commitMessageAction": "Update",
+    "commitMessagePrefix": "chore(deps):",
+    "labels": ["dependencies", "lockfile"]
+  },
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2
+}
