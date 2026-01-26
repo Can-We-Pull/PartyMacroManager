@@ -78,6 +78,156 @@ function fixWhitespace(filePath) {
   return 0;
 }
 
+// Fix long lines by intelligently breaking them
+function fixLongLines(filePath, maxLength = 120) {
+  const content = fs.readFileSync(filePath, 'utf8');
+  const lines = content.split('\n');
+  let fixed = 0;
+  const fixedLines = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    if (line.length <= maxLength) {
+      fixedLines.push(line);
+      continue;
+    }
+
+    // Get indentation
+    const indent = line.match(/^(\s*)/)[0];
+    const contentStart = indent.length;
+    
+    // Try to break long strings
+    if (line.includes('"') && line.match(/[=:]\s*"/)) {
+      const match = line.match(/^(\s*)(.+?[=:]\s*)"(.+)"(.*)$/);
+      if (match) {
+        const [, lineIndent, prefix, stringContent, suffix] = match;
+        
+        // Calculate target length for first part
+        const firstLineTarget = maxLength - (lineIndent.length + prefix.length + 2); // 2 for quotes
+        
+        // Find best break point
+        let breakPos = -1;
+        const searchStart = Math.max(firstLineTarget - 20, 10);
+        const searchEnd = Math.min(firstLineTarget, stringContent.length - 10);
+        
+        for (let pos = searchEnd; pos >= searchStart; pos--) {
+          const char = stringContent[pos];
+          if (char === ' ' || char === '.' || char === ',' || char === ';') {
+            breakPos = pos + 1;
+            break;
+          }
+        }
+        
+        if (breakPos > 0 && breakPos < stringContent.length) {
+          const part1 = stringContent.substring(0, breakPos).trim();
+          const part2 = stringContent.substring(breakPos).trim();
+          
+          fixedLines.push(`${lineIndent}${prefix}"${part1}"`);
+          fixedLines.push(`${lineIndent}    .. "${part2}"${suffix}`);
+          fixed++;
+          continue;
+        }
+      }
+    }
+    
+    // Try to break concatenated strings that are already on separate lines
+    if (line.includes('.. "') && line.includes('"')) {
+      const match = line.match(/^(\s*)\.\.?\s*"(.+)"(.*)$/);
+      if (match) {
+        const [, lineIndent, stringContent, suffix] = match;
+        
+        // Calculate target length for first part
+        const firstLineTarget = maxLength - (lineIndent.length + 7); // 7 for '.. ""'
+        
+        if (stringContent.length > firstLineTarget) {
+          // Find best break point
+          let breakPos = -1;
+          const searchStart = Math.max(firstLineTarget - 20, 10);
+          const searchEnd = Math.min(firstLineTarget, stringContent.length - 10);
+          
+          for (let pos = searchEnd; pos >= searchStart; pos--) {
+            const char = stringContent[pos];
+            if (char === ' ' || char === '.' || char === ',' || char === ';') {
+              breakPos = pos + 1;
+              break;
+            }
+          }
+          
+          if (breakPos > 0 && breakPos < stringContent.length) {
+            const part1 = stringContent.substring(0, breakPos).trim();
+            const part2 = stringContent.substring(breakPos).trim();
+            
+            fixedLines.push(`${lineIndent}.. "${part1}"`);
+            fixedLines.push(`${lineIndent}.. "${part2}"${suffix}`);
+            fixed++;
+            continue;
+          }
+        }
+      }
+    }
+    
+    // Try to break function calls with long argument lists
+    if (line.includes('AddLine(') || line.includes('SetText(') || line.includes('print(')) {
+      const match = line.match(/^(\s*)(.+?\()(.+)(\).*)$/);
+      if (match) {
+        const [, lineIndent, funcStart, args, funcEnd] = match;
+        
+        // Check if it's a long string argument
+        if (args.match(/^"[^"]{50,}"/)) {
+          const stringMatch = args.match(/^"([^"]+)"(.*)$/);
+          if (stringMatch) {
+            const [, stringContent, restArgs] = stringMatch;
+            
+            // Calculate target length for first part
+            const firstLineTarget = maxLength - (lineIndent.length + funcStart.length + 6);
+            
+            // Find a good break point in the string
+            let breakPos = -1;
+            const searchStart = Math.max(firstLineTarget - 20, 10);
+            const searchEnd = Math.min(firstLineTarget, stringContent.length - 10);
+            
+            for (let pos = searchEnd; pos >= searchStart; pos--) {
+              const char = stringContent[pos];
+              if (char === ' ' || char === '.' || char === ',' || char === ';') {
+                breakPos = pos + 1;
+                break;
+              }
+            }
+            
+            if (breakPos > 0) {
+              const part1 = stringContent.substring(0, breakPos).trim();
+              const part2 = stringContent.substring(breakPos).trim();
+              
+              fixedLines.push(`${lineIndent}${funcStart}`);
+              fixedLines.push(`${lineIndent}    "${part1} "`);
+              fixedLines.push(`${lineIndent}    .. "${part2}"${restArgs}`);
+              fixedLines.push(`${lineIndent}${funcEnd}`);
+              fixed++;
+              continue;
+            }
+          }
+        }
+      }
+    }
+    
+    // If we couldn't fix it intelligently, just keep the line
+    fixedLines.push(line);
+  }
+
+  if (fixed > 0) {
+    let fixedContent = fixedLines.join('\n');
+    if (content.endsWith('\n') && !fixedContent.endsWith('\n')) {
+      fixedContent += '\n';
+    }
+    
+    fs.writeFileSync(filePath, fixedContent, 'utf8');
+    return fixed;
+  }
+
+  return 0;
+}
+
 function main() {
   console.log(`${colors.cyan}╔════════════════════════════════════════╗${colors.reset}`);
   console.log(`${colors.cyan}║  PartyMacroManager Lint Autofix       ║${colors.reset}`);
@@ -99,12 +249,17 @@ function main() {
 
   for (const filePath of luaFiles) {
     const relPath = path.relative(PROJECT_ROOT, filePath);
-    const fixed = fixWhitespace(filePath);
+    const whitespaceFixed = fixWhitespace(filePath);
+    const longLinesFixed = fixLongLines(filePath);
+    const totalFileFixed = whitespaceFixed + longLinesFixed;
     
-    if (fixed > 0) {
+    if (totalFileFixed > 0) {
       filesFixed++;
-      totalFixed += fixed;
-      log.success(`Fixed ${fixed} issue(s) in ${relPath}`);
+      totalFixed += totalFileFixed;
+      const details = [];
+      if (whitespaceFixed > 0) details.push(`${whitespaceFixed} whitespace`);
+      if (longLinesFixed > 0) details.push(`${longLinesFixed} long lines`);
+      log.success(`Fixed ${details.join(', ')} in ${relPath}`);
     }
   }
 

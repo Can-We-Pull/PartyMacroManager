@@ -8,7 +8,7 @@
     "build": "node scripts/build.js",
     "watch": "npm run dev",
     "lint": "node scripts/lint.js",
-    "lint:fix": "node scripts/lint-fix.js",
+    "lint:fix": "node scripts/lint-fix.js && npm run lint",
     "package": "npm run build"
   },
   "devDependencies": {

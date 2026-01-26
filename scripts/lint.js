@@ -73,6 +73,52 @@ function main() {
     options.config = LUACHECK_RC;
   }
 
+  // Error code descriptions
+  const errorDescriptions = {
+    // Warnings (W)
+    'W111': 'setting non-standard global variable',
+    'W112': 'mutating non-standard global variable',
+    'W113': 'accessing undefined variable',
+    'W121': 'setting read-only global variable',
+    'W122': 'setting read-only field of global variable',
+    'W131': 'unused global variable',
+    'W211': 'unused function',
+    'W212': 'unused argument',
+    'W213': 'unused loop variable',
+    'W221': 'unused variable',
+    'W231': 'variable is never set',
+    'W311': 'value assigned to variable is unused',
+    'W312': 'value of argument is unused',
+    'W313': 'value of loop variable is unused',
+    'W314': 'value of field in a table literal is unused',
+    'W321': 'accessing uninitialized variable',
+    'W411': 'variable was previously defined on line',
+    'W412': 'variable was previously defined as an argument',
+    'W413': 'variable was previously defined as a loop variable',
+    'W421': 'shadowing definition of variable on line',
+    'W422': 'shadowing definition of argument',
+    'W423': 'shadowing definition of loop variable',
+    'W511': 'unreachable code',
+    'W512': 'loop can be executed at most once',
+    'W521': 'unused label',
+    'W531': 'left-hand side of assignment is too short',
+    'W532': 'left-hand side of assignment is too long',
+    'W541': 'empty do..end block',
+    'W542': 'empty if branch',
+    'W581': 'negation of a relational operator can be simplified',
+    'W611': 'line contains only whitespace',
+    'W612': 'line contains trailing whitespace',
+    'W613': 'trailing whitespace in a string',
+    'W614': 'trailing whitespace in a comment',
+    'W621': 'inconsistent indentation (spaces vs tabs)',
+    'W631': 'line is too long',
+    // Errors (E)
+    'E011': 'expected "=" near',
+    'E111': 'setting non-module global variable',
+    'E112': 'mutating non-module global variable',
+    'E113': 'accessing undefined variable',
+  };
+
   for (const filePath of luaFiles) {
     const relPath = path.relative(PROJECT_ROOT, filePath);
     
@@ -91,7 +137,8 @@ function main() {
           const col = error.column || 'unknown';
           const code = error.code || 'unknown';
           const msg = error.msg || error.message || 'unknown issue';
-          console.log(`  ${type}${line}:${col}${colors.reset} ${code} ${msg}`);
+          const description = errorDescriptions[code] || msg;
+          console.log(`  ${type}${line}:${col}${colors.reset} ${code} - ${description}`);
         }
         
         console.log();

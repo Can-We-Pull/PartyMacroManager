@@ -9,6 +9,7 @@ globals = {
     "PartyMacroManager",
     "PartyMacroManagerDB",
     "Settings",
+    "SettingsPanel",
     "SLASH_PARTYMACRO1",
     "SLASH_PARTYMACRO2",
     "SlashCmdList",
@@ -47,6 +48,8 @@ globals = {
     -- Chat and UI
     "print",
     "DEFAULT_CHAT_FRAME",
+    "StaticPopupDialogs",
+    "StaticPopup_Show",
     
     -- Event handling
     "C_Timer",
