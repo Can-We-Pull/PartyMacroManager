@@ -1,5 +1,8 @@
 # PartyMacroManager
 
+[![Code Review](https://github.com/Can-We-Pull/PartyMacroManager/actions/workflows/lint.yml/badge.svg)](https://github.com/Can-We-Pull/PartyMacroManager/actions/workflows/lint.yml)
+[![Release](https://github.com/Can-We-Pull/PartyMacroManager/actions/workflows/release.yml/badge.svg)](https://github.com/Can-We-Pull/PartyMacroManager/actions/workflows/release.yml)
+
 Auto-creates interrupt macros based on party position for World of Warcraft.
 
 ## Development Setup
@@ -52,13 +55,25 @@ curl https://get.volta.sh | bash
 
 ## Available Scripts
 
+### Development
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start watch mode - automatically syncs changes to WoW |
 | `npm run build` | Create a production build (zip file for distribution) |
 | `npm run build 1.2.3` | Build with a specific version number |
-| `npm run lint` | Run Lua linter to check code quality |
-| `npm run lint:fix` | Auto-fix whitespace and formatting issues |
+
+### Testing & Quality
+| Command | Description |
+|---------|-------------|
+| `npm test` | Run all tests with Vitest |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:ui` | Open Vitest UI in browser |
+| `npm run test:coverage` | Generate test coverage report |
+| `npm run lint` | Run all linters (Lua + JavaScript) |
+| `npm run lint:lua` | Run Lua linter only |
+| `npm run lint:js` | Run JavaScript/ESLint only |
+| `npm run lint:fix` | Auto-fix all fixable issues |
+| `npm run lint:js:fix` | Auto-fix JavaScript issues only |
 
 ## Project Structure
 
@@ -69,11 +84,17 @@ PartyMacroManager/
 │   ├── Settings.lua       # Settings panel
 │   └── *.toc              # Addon metadata
 ├── scripts/               # Build and dev tools (Node.js)
-│   ├── dev.js            # Watch mode script
-│   └── build.js          # Production build script
+│   ├── dev.cjs           # Watch mode script
+│   ├── build.cjs         # Production build script
+│   ├── lint.cjs          # Lua linting script
+│   ├── lint-fix.mjs      # Auto-fix Lua issues
+│   └── fixers/           # Fixer modules with tests
 ├── .env.local            # Your local WoW path (not in git)
 ├── .env.local.example    # Example environment config
 ├── .luacheckrc           # Lua linting configuration
+├── eslint.config.mjs     # JavaScript linting configuration
+├── vitest.config.js      # Test runner configuration
+├── commitlint.config.cjs # Commit message linting
 └── package.json          # Project dependencies and scripts
 ```
 
@@ -117,13 +138,52 @@ To build with a custom version:
 npm run build 1.2.3
 ```
 
-### Code Quality (Optional)
-The project includes `luacheck` as a dev dependency for linting:
+## Testing & Code Quality
+
+### Running Tests
+The project uses **Vitest** for fast, modern JavaScript testing:
 ```bash
-npm run lint
+npm test                  # Run all tests
+npm run test:watch        # Watch mode for development
+npm run test:ui           # Visual test interface
+npm run test:coverage     # Generate coverage report
 ```
 
-**Note:** Luacheck requires the system binary to be installed. The setup automatically installs it via luarocks to `~/.luarocks/bin/` and adds it to your PATH in `.zshrc`.
+All tests run automatically in CI/CD on every pull request.
+
+### Linting
+The project includes comprehensive linting for both Lua and JavaScript:
+
+```bash
+npm run lint              # Run all linters
+npm run lint:lua          # Lua code only
+npm run lint:js           # JavaScript code only
+npm run lint:fix          # Auto-fix all issues
+```
+
+**Note:** Luacheck requires the system binary. It's automatically installed via luarocks and added to PATH.
+
+## CI/CD Workflows
+
+The project uses GitHub Actions for automated quality checks and releases:
+
+### Code Review (runs on every PR and push)
+- ✅ Lua linting with luacheck
+- ✅ JavaScript linting with ESLint
+- ✅ Automated tests with Vitest
+- ✅ Code coverage reporting
+- ✅ Auto-formatting validation
+
+### Build PR Preview
+- 📦 Builds addon for every pull request
+- 📎 Uploads artifacts for testing
+- 💬 Comments on PR with download instructions
+
+### Release (runs on main branch)
+- 🚀 Automatic semantic versioning
+- 🏷️ Creates GitHub releases with tags
+- 📦 Builds and attaches distribution zip
+- 📝 Updates version in package.json and .toc files
 
 ## How This Differs from Standard Lua Development
 
@@ -132,13 +192,15 @@ Most WoW addon developers use:
 - Shell scripts for builds
 - No dependency management
 
-This project uses a **TypeScript-style workflow**:
+This project uses a **modern JavaScript workflow**:
 - ✅ `package.json` for scripts and dependencies
 - ✅ `npm run` commands (familiar from React, Angular, Vue, etc.)
 - ✅ Automatic file watching with caching
-- ✅ Cross-platform compatibility
+- ✅ Cross-platform compatibility (Windows, macOS, Linux)
 - ✅ Environment-based configuration (`.env.local`)
-- ✅ Optional linting support
+- ✅ Professional testing with Vitest (25 tests, 100% passing)
+- ✅ Code quality with ESLint + luacheck
+- ✅ Automated CI/CD with GitHub Actions
 
 ## Why This Approach?
 
