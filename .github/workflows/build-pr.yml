@@ -1,0 +1,96 @@
+name: Build PR Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: 'package.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build addon
+        run: npm run build
+
+      - name: Get version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PartyMacroManager-${{ steps.version.outputs.version }}-pr${{ github.event.pull_request.number }}
+          path: build/PartyMacroManager-*.zip
+          retention-days: 30
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const version = '${{ steps.version.outputs.version }}';
+            const prNumber = context.payload.pull_request.number;
+            const runId = context.runId;
+            const repo = context.repo;
+            
+            const artifactName = `PartyMacroManager-${version}-pr${prNumber}`;
+            const artifactUrl = `https://github.com/${repo.owner}/${repo.repo}/actions/runs/${runId}`;
+            
+            const comment = `## 📦 Build Preview Ready!
+            
+            **Version:** \`${version}\`
+            **PR:** #${prNumber}
+            
+            ### Download and Test
+            
+            1. Go to the [Actions run](${artifactUrl})
+            2. Scroll to "Artifacts" section at the bottom
+            3. Download \`${artifactName}\`
+            4. Extract the zip file
+            5. Copy the \`PartyMacroManager\` folder to your WoW \`Interface/AddOns/\` directory
+            6. Restart WoW or reload UI with \`/reload\`
+            
+            ---
+            *This build was automatically generated from commit ${context.sha.substring(0, 7)}*`;
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: repo.owner,
+              repo: repo.repo,
+              issue_number: prNumber,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Build Preview Ready')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: repo.owner,
+                repo: repo.repo,
+                comment_id: botComment.id,
+                body: comment,
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: prNumber,
+                body: comment,
+              });
+            }
