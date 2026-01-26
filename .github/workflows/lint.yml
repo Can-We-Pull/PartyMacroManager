@@ -1,0 +1,46 @@
+name: Code Review
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    name: Lint Lua Code
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install LuaRocks
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y luarocks
+
+    - name: Install luacheck
+      run: |
+        luarocks install --local luacheck
+        echo "$HOME/.luarocks/bin" >> $GITHUB_PATH
+
+    - name: Run linter
+      run: npm run lint
+
+    - name: Check for uncommitted formatting changes
+      run: |
+        npm run lint:fix
+        if ! git diff --exit-code; then
+          echo "❌ Code formatting issues found. Run 'npm run lint:fix' locally and commit the changes."
+          exit 1
+        fi

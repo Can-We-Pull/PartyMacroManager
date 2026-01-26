@@ -1,1 +1,6 @@
 PartyMacroManager/
+PartyMacroManager.zip
+.env.local
+node_modules/
+.dev-cache.json
+.vscode
