@@ -6,7 +6,7 @@ PMM.Settings = {
     IconSelection = {},
     CustomTexture = {},
     ChatVerbosity = {},
-    AdvancedControls = {}
+    AdvancedControls = {},
 }
 
 function PMM.Settings.CreateOptionsPanel()

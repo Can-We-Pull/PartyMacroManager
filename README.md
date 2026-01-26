@@ -25,6 +25,8 @@ curl https://get.volta.sh | bash
 # Download and run the installer from https://volta.sh
 ```
 
+> **Note:** StyLua (Lua formatter) is installed as an npm dev dependency and runs via `npx` - no additional installation needed!
+
 ### Getting Started
 
 1. **Install dependencies:**
@@ -69,11 +71,13 @@ curl https://get.volta.sh | bash
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:ui` | Open Vitest UI in browser |
 | `npm run test:coverage` | Generate test coverage report |
+| `npm run format` | Format Lua code with StyLua |
+| `npm run format:check` | Check if Lua code is formatted correctly |
 | `npm run lint` | Run all linters (Lua + JavaScript) |
 | `npm run lint:lua` | Run Lua linter only |
 | `npm run lint:js` | Run JavaScript/ESLint only |
-| `npm run lint:fix` | Auto-fix all fixable issues |
-| `npm run lint:js:fix` | Auto-fix JavaScript issues only |
+| `npm run lint:workflows` | Lint GitHub Actions workflow files |
+| `npm run lint:fix` | Auto-format and fix all issues |
 
 ## Project Structure
 
@@ -87,11 +91,11 @@ PartyMacroManager/
 │   ├── dev.cjs           # Watch mode script
 │   ├── build.cjs         # Production build script
 │   ├── lint.cjs          # Lua linting script
-│   ├── lint-fix.mjs      # Auto-fix Lua issues
-│   └── fixers/           # Fixer modules with tests
+│   └── format.cjs        # Lua formatting script
 ├── .env.local            # Your local WoW path (not in git)
 ├── .env.local.example    # Example environment config
 ├── .luacheckrc           # Lua linting configuration
+├── .stylua.toml          # Lua formatting configuration
 ├── eslint.config.mjs     # JavaScript linting configuration
 ├── vitest.config.js      # Test runner configuration
 ├── commitlint.config.cjs # Commit message linting
@@ -158,10 +162,54 @@ The project includes comprehensive linting for both Lua and JavaScript:
 npm run lint              # Run all linters
 npm run lint:lua          # Lua code only
 npm run lint:js           # JavaScript code only
-npm run lint:fix          # Auto-fix all issues
+npm run lint:workflows    # GitHub Actions workflows
+npm run format            # Format Lua with StyLua
+npm run lint:fix          # Format + fix all issues
 ```
 
-**Note:** Luacheck requires the system binary. It's automatically installed via luarocks and added to PATH.
+**Code Quality Tools:**
+- **StyLua** - Industry-standard Lua formatter (like Prettier for JS)
+- **Luacheck** - Lua static analyzer via Node.js bindings
+- **ESLint** - JavaScript linting for build scripts
+- **actionlint** - GitHub Actions workflow linter (requires local setup, see below)
+
+### Setting Up Workflow Linting (actionlint)
+
+To lint GitHub Actions workflows locally and catch issues before CI:
+
+#### Linux (Ubuntu/Debian)
+```bash
+# Install shellcheck (required by actionlint)
+sudo apt-get update && sudo apt-get install -y shellcheck
+
+# Install actionlint
+curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | bash -s latest /usr/local/bin
+sudo chmod +x /usr/local/bin/actionlint
+```
+
+#### macOS
+```bash
+# Install with Homebrew
+brew install actionlint shellcheck
+```
+
+#### Windows
+```powershell
+# Using Chocolatey
+choco install actionlint shellcheck
+
+# Or using Scoop
+scoop install actionlint shellcheck
+```
+
+#### Verify Installation
+```bash
+actionlint --version
+shellcheck --version
+npm run lint:workflows
+```
+
+This will catch YAML syntax errors, shellcheck issues, and GitHub Actions best practices violations before you push to CI.
 
 ## CI/CD Workflows
 

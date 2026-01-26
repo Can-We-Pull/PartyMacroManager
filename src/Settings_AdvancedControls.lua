@@ -95,7 +95,10 @@ function PMM.Settings.AdvancedControls.Create(parent, anchorFrame)
         GameTooltip:SetText("Pause Macro Recreation", 1, 1, 1)
         GameTooltip:AddLine(
             "When enabled, the addon will not automatically create or update the macro.",
-            nil, nil, nil, true
+            nil,
+            nil,
+            nil,
+            true
         )
         GameTooltip:Show()
     end)
@@ -119,8 +122,11 @@ function PMM.Settings.AdvancedControls.Create(parent, anchorFrame)
         GameTooltip:SetText("Delete Party Macro Manager Macro", 1, 1, 1)
         GameTooltip:AddLine(
             "Removes the PartyInterrupt macro from your macros. "
-            .. "You can choose to pause recreation to prevent it from being recreated.",
-            nil, nil, nil, true
+                .. "You can choose to pause recreation to prevent it from being recreated.",
+            nil,
+            nil,
+            nil,
+            true
         )
         GameTooltip:Show()
     end)
@@ -144,8 +150,11 @@ function PMM.Settings.AdvancedControls.Create(parent, anchorFrame)
         GameTooltip:SetText("Clear All Settings", 1, 1, 1)
         GameTooltip:AddLine(
             "Resets all addon settings to their default values, "
-            .. "including icon selection, custom texture, and chat verbosity.",
-            nil, nil, nil, true
+                .. "including icon selection, custom texture, and chat verbosity.",
+            nil,
+            nil,
+            nil,
+            true
         )
         GameTooltip:Show()
     end)

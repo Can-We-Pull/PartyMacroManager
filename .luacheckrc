@@ -3,6 +3,9 @@
 
 std = "lua51"
 
+-- Allow line length up to 120 (StyLua handles formatting)
+max_line_length = 120
+
 -- WoW API globals
 globals = {
     -- Addon-specific globals

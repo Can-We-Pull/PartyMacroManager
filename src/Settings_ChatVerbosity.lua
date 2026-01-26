@@ -17,10 +17,10 @@ function PMM.Settings.ChatVerbosity.Create(parent, anchorFrame)
 
     -- Verbosity dropdown
     local verbosityOptions = {
-        {text = "Silent - No messages", value = "silent"},
-        {text = "Minimal - Errors only", value = "minimal"},
-        {text = "Normal - Important updates", value = "normal"},
-        {text = "Verbose - All updates", value = "verbose"}
+        { text = "Silent - No messages", value = "silent" },
+        { text = "Minimal - Errors only", value = "minimal" },
+        { text = "Normal - Important updates", value = "normal" },
+        { text = "Verbose - All updates", value = "verbose" },
     }
 
     local dropdown = CreateFrame("Frame", "PartyMacroVerbosityDropdown", parent, "UIDropDownMenuTemplate")
