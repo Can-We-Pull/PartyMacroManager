@@ -2,7 +2,7 @@
 ## Title: Party Macro Manager
 ## Notes: Auto-creates interrupt macros based on party position
 ## Author: Darcilynn
-## Version: v1.0.1
+## Version: 1.0.0
 ## SavedVariables: PartyMacroManagerDB
 
 Core.lua
