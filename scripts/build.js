@@ -34,7 +34,6 @@ const SRC_DIR = path.join(PROJECT_ROOT, 'src');
 const BUILD_DIR = path.join(PROJECT_ROOT, 'PartyMacroManager');
 const TOC_FILE = path.join(SRC_DIR, 'PartyMacroManager.toc');
 const PACKAGE_JSON = path.join(PROJECT_ROOT, 'package.json');
-const OUTPUT_ZIP = path.join(PROJECT_ROOT, 'PartyMacroManager.zip');
 
 // Get version from command line or package.json
 function getVersion() {
@@ -75,9 +74,13 @@ function cleanBuildDir() {
     fs.rmSync(BUILD_DIR, { recursive: true, force: true });
   }
   
-  if (fs.existsSync(OUTPUT_ZIP)) {
-    fs.unlinkSync(OUTPUT_ZIP);
-  }
+  // Clean up any old zip files
+  const files = fs.readdirSync(PROJECT_ROOT);
+  files.forEach(file => {
+    if (file.startsWith('PartyMacroManager-') && file.endsWith('.zip')) {
+      fs.unlinkSync(path.join(PROJECT_ROOT, file));
+    }
+  });
   
   log.success('Cleaned build directory');
 }
@@ -110,14 +113,18 @@ function copySourceFiles() {
 }
 
 // Create zip file
-function createZip() {
+function createZip(version) {
   log.step('Creating zip archive...');
+  
+  const zipName = `PartyMacroManager-${version}.zip`;
+  const outputZip = path.join(PROJECT_ROOT, zipName);
   
   try {
     // Use zip command if available, otherwise use a Node.js alternative
     const cwd = PROJECT_ROOT;
-    execSync('zip -r PartyMacroManager.zip PartyMacroManager/', { cwd, stdio: 'pipe' });
-    log.success('Created PartyMacroManager.zip');
+    execSync(`zip -r "${zipName}" PartyMacroManager/`, { cwd, stdio: 'pipe' });
+    log.success(`Created ${zipName}`);
+    return outputZip;
   } catch (error) {
     log.error(`Failed to create zip: ${error.message}`);
     log.warn('Make sure "zip" command is installed, or install archiver package for pure Node.js solution');
@@ -140,14 +147,14 @@ function main() {
     updateTocVersion(version);
     cleanBuildDir();
     copySourceFiles();
-    createZip();
+    const outputZip = createZip(version);
     
     // Clean up build directory after zipping
     fs.rmSync(BUILD_DIR, { recursive: true, force: true });
     
     console.log();
-    log.success(`Build complete! PartyMacroManager.zip created with version v${version}`);
-    log.info(`Location: ${OUTPUT_ZIP}`);
+    log.success(`Build complete! PartyMacroManager-${version}.zip created`);
+    log.info(`Location: ${outputZip}`);
   } catch (error) {
     log.error(`Build failed: ${error.message}`);
     process.exit(1);

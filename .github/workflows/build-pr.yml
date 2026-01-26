@@ -21,18 +21,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build addon
-        run: npm run build
-
       - name: Get version
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Build addon
+        run: npm run build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: PartyMacroManager-${{ steps.version.outputs.version }}-pr${{ github.event.pull_request.number }}
-          path: build/PartyMacroManager-*.zip
+          path: PartyMacroManager-${{ steps.version.outputs.version }}.zip
           retention-days: 30
 
       - name: Comment on PR

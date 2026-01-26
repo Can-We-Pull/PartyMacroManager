@@ -43,23 +43,32 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "Next version will be: $VERSION"
       
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: 'package.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install LuaRocks and luacheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luarocks lua5.1
+          luarocks install --local luacheck
+          echo "$HOME/.luarocks/bin" >> $GITHUB_PATH
+
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
       
       - name: Build addon with version
-        run: |
-          chmod +x ./scripts/build.sh
-          ./scripts/build.sh ${{ steps.version.outputs.VERSION }}
-      
-      - name: Rename zip with version
-        run: |
-          mv PartyMacroManager.zip PartyMacroManager-${{ steps.version.outputs.VERSION }}.zip
+        run: npm run build ${{ steps.version.outputs.VERSION }}
       
       - name: Commit version bump
         run: |
-          git add src/PartyMacroManager.toc
+          git add package.json src/PartyMacroManager.toc
           git commit -m "chore: bump version to ${{ steps.version.outputs.VERSION }} [skip ci]" || echo "No changes to commit"
           git push origin main || echo "Nothing to push"
       

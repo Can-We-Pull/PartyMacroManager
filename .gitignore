@@ -1,5 +1,5 @@
 PartyMacroManager/
-PartyMacroManager.zip
+PartyMacroManager*.zip
 .env.local
 node_modules/
 .dev-cache.json

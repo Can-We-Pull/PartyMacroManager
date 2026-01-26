@@ -18,19 +18,15 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '22'
-        cache: 'npm'
+        node-version-file: 'package.json'
 
     - name: Install dependencies
       run: npm ci
 
-    - name: Install LuaRocks
+    - name: Install LuaRocks and luacheck
       run: |
         sudo apt-get update
-        sudo apt-get install -y luarocks
-
-    - name: Install luacheck
-      run: |
+        sudo apt-get install -y luarocks lua5.1
         luarocks install --local luacheck
         echo "$HOME/.luarocks/bin" >> $GITHUB_PATH
 
