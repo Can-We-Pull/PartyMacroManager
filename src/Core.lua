@@ -15,7 +15,7 @@ local defaults = {
     macroIcon = "Ability_Hunter_SniperShot",
     customTexturePath = "",
     chatVerbosity = "normal", -- "silent", "minimal", "normal", "verbose"
-    pauseRecreation = false
+    pauseRecreation = false,
 }
 
 for key, value in pairs(defaults) do
@@ -48,17 +48,19 @@ function PMM.GetMyPartyIndex()
     local playerGUID = UnitGUID("player")
     local members = {}
 
-    table.insert(members, {guid = playerGUID, unit = "player"})
+    table.insert(members, { guid = playerGUID, unit = "player" })
 
     for i = 1, 4 do
         local unit = "party" .. i
         if UnitExists(unit) then
-            table.insert(members, {guid = UnitGUID(unit), unit = unit})
+            table.insert(members, { guid = UnitGUID(unit), unit = unit })
         end
     end
 
     -- Sort by GUID to get consistent ordering
-    table.sort(members, function(a, b) return a.guid < b.guid end)
+    table.sort(members, function(a, b)
+        return a.guid < b.guid
+    end)
 
     -- Find our index
     for i, member in ipairs(members) do
@@ -80,8 +82,7 @@ function PMM.CreateOrUpdateMacro()
 
     if not partyIndex then
         if PartyMacroManagerDB.chatVerbosity ~= "silent" then
-            local msg = "|cffff0000[" .. addonName .. "]|r Not in a 5-player party. "
-                .. "Macro not created."
+            local msg = "|cffff0000[" .. addonName .. "]|r Not in a 5-player party. " .. "Macro not created."
             print(msg)
         end
         lastPartyIndex = nil
@@ -97,11 +98,7 @@ function PMM.CreateOrUpdateMacro()
         return -- No change, skip update
     end
 
-    local macroText = string.format(
-        "/focus\n/tm %d\n/p Interrupting {rt%d}",
-        partyIndex,
-        partyIndex
-    )
+    local macroText = string.format("/focus\n/tm %d\n/p Interrupting {rt%d}", partyIndex, partyIndex)
 
     -- Determine which icon to use
     local selectedIcon
@@ -116,8 +113,7 @@ function PMM.CreateOrUpdateMacro()
         -- Create new macro
         local numGlobalMacros = GetNumMacros()
         if numGlobalMacros >= 36 then
-            local msg = "|cffff0000[" .. addonName .. "]|r Cannot create macro - "
-                .. "global macro limit reached!"
+            local msg = "|cffff0000[" .. addonName .. "]|r Cannot create macro - " .. "global macro limit reached!"
             print(msg)
             lastPartyIndex = nil
             return
@@ -127,8 +123,12 @@ function PMM.CreateOrUpdateMacro()
 
         local verbosity = PartyMacroManagerDB.chatVerbosity
         if verbosity == "normal" or verbosity == "verbose" then
-            local msg = "|cff00ff00[" .. addonName .. "]|r Macro '" .. MACRO_NAME
-                .. "' created for party position " .. partyIndex
+            local msg = "|cff00ff00["
+                .. addonName
+                .. "]|r Macro '"
+                .. MACRO_NAME
+                .. "' created for party position "
+                .. partyIndex
             print(msg)
         end
     else
@@ -136,12 +136,15 @@ function PMM.CreateOrUpdateMacro()
         EditMacro(macroIndex, MACRO_NAME, selectedIcon, macroText)
 
         if PartyMacroManagerDB.chatVerbosity == "verbose" then
-            local msg = "|cff00ff00[" .. addonName .. "]|r Macro '" .. MACRO_NAME
-                .. "' updated for party position " .. partyIndex
+            local msg = "|cff00ff00["
+                .. addonName
+                .. "]|r Macro '"
+                .. MACRO_NAME
+                .. "' updated for party position "
+                .. partyIndex
             print(msg)
         elseif PartyMacroManagerDB.chatVerbosity == "normal" and lastPartyIndex ~= partyIndex then
-            local msg = "|cff00ff00[" .. addonName .. "]|r Macro updated for party position "
-                .. partyIndex
+            local msg = "|cff00ff00[" .. addonName .. "]|r Macro updated for party position " .. partyIndex
             print(msg)
         end
     end
@@ -223,8 +226,7 @@ C_Timer.NewTicker(5, function()
             -- Macro was deleted, recreate it
             local verbosity = PartyMacroManagerDB.chatVerbosity
             if verbosity == "normal" or verbosity == "verbose" then
-                local msg = "|cffff9900[" .. addonName .. "]|r Macro was deleted. "
-                    .. "Recreating..."
+                local msg = "|cffff9900[" .. addonName .. "]|r Macro was deleted. " .. "Recreating..."
                 print(msg)
             end
             PMM.CreateOrUpdateMacro()
@@ -243,6 +245,8 @@ SlashCmdList["PARTYMACRO"] = function(msg)
     end
 end
 
-local loadMsg = "|cff00ff00[" .. addonName .. "]|r Loaded. Use /partymacro or /pm "
+local loadMsg = "|cff00ff00["
+    .. addonName
+    .. "]|r Loaded. Use /partymacro or /pm "
     .. "to manually update. Use /pm config for options."
 print(loadMsg)

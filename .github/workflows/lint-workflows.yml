@@ -18,6 +18,4 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run actionlint
-        uses: rhoborb/action-lint@v1
-        with:
-          use_default_ignore: true
+        uses: rhysd/actionlint@v1.7.10

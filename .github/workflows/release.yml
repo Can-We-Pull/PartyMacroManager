@@ -40,7 +40,7 @@ jobs:
             VERSION="${{ steps.semver.outputs.next }}"
             VERSION="${VERSION#v}"
           fi
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Next version will be: $VERSION"
       
       - name: Setup Node.js
@@ -57,12 +57,8 @@ jobs:
       - name: Run linters
         run: npm run lint
 
-      - name: Install LuaRocks and luacheck
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y luarocks lua5.1
-          luarocks install --local luacheck
-          echo "$HOME/.luarocks/bin" >> $GITHUB_PATH
+      - name: Check Lua formatting
+        run: npm run format:check
 
       - name: Configure Git
         run: |
@@ -79,7 +75,7 @@ jobs:
           git push origin main || echo "Nothing to push"
       
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.VERSION }}
           name: Release v${{ steps.version.outputs.VERSION }}

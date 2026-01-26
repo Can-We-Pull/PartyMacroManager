@@ -7,10 +7,10 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      include: ['scripts/fixers/**/*.js'],
-      exclude: ['scripts/fixers/__tests__/**', 'scripts/fixers/**/*.test.js']
+      include: ['scripts/**/*.{js,cjs,mjs}'],
+      exclude: ['scripts/**/*.test.js']
     },
-    include: ['scripts/fixers/__tests__/**/*.test.js'],
+    include: ['scripts/**/*.test.js'],
     reporters: ['verbose']
   }
 });

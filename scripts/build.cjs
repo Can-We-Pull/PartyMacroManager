@@ -71,7 +71,7 @@ function updatePackageVersion(version) {
   try {
     const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
     pkg.version = version;
-    fs.writeFileSync(PACKAGE_JSON, JSON.stringify(pkg, null, 2) + '\n');
+    fs.writeFileSync(PACKAGE_JSON, `${JSON.stringify(pkg, null, 2)  }\n`);
     log.success(`Updated package.json to version ${version}`);
   } catch (error) {
     log.error(`Failed to update package.json: ${error.message}`);

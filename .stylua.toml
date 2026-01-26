@@ -1,0 +1,18 @@
+# StyLua Configuration
+# Standard Lua formatter - https://github.com/JohnnyMorganz/StyLua
+
+# Column width for line breaking
+column_width = 120
+
+# Number of spaces per indentation level
+indent_type = "Spaces"
+indent_width = 4
+
+# Style for quotes - prefer double quotes but maintain consistency
+quote_style = "AutoPreferDouble"
+
+# Call parentheses style
+call_parentheses = "Always"
+
+# Collapse simple statements/tables onto one line
+collapse_simple_statement = "Never"

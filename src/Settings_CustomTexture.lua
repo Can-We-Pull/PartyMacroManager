@@ -14,8 +14,8 @@ function PMM.Settings.CustomTexture.Create(parent, anchorFrame)
     local customSubtitle = parent:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     customSubtitle:SetPoint("TOPLEFT", customTitle, "BOTTOMLEFT", 0, -4)
     customSubtitle:SetText(
-        "Enter a full texture path (e.g., Interface\\Icons\\INV_Misc_QuestionMark "
-        .. "or Ability_Hunter_SniperShot)")
+        "Enter a full texture path (e.g., Interface\\Icons\\INV_Misc_QuestionMark " .. "or Ability_Hunter_SniperShot)"
+    )
 
     local customInput = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
     customInput:SetPoint("TOPLEFT", customSubtitle, "BOTTOMLEFT", 5, -8)

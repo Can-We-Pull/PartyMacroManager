@@ -42,7 +42,8 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "version=$(node --input-type=module -e "import pkg from './package.json' with { type: 'json' }; console.log(pkg.version)")" >> $GITHUB_OUTPUT
+        run: |
+          echo "version=$(node --input-type=module -e 'import pkg from "./package.json" with { type: "json" }; console.log(pkg.version)')" >> "$GITHUB_OUTPUT"
 
       - name: Build addon
         run: npm run build
