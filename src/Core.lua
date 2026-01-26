@@ -7,11 +7,21 @@ PartyMacroManager = PartyMacroManager or {}
 local PMM = PartyMacroManager
 
 -- Saved variables (persists across sessions)
-PartyMacroManagerDB = PartyMacroManagerDB or {
+-- Initialize with defaults, preserving any existing values
+PartyMacroManagerDB = PartyMacroManagerDB or {}
+
+-- Apply defaults for any missing keys
+local defaults = {
     macroIcon = "Ability_Hunter_SniperShot",
     customTexturePath = "",
     chatVerbosity = "normal" -- "silent", "minimal", "normal", "verbose"
 }
+
+for key, value in pairs(defaults) do
+    if PartyMacroManagerDB[key] == nil then
+        PartyMacroManagerDB[key] = value
+    end
+end
 
 -- Track last known party index to avoid unnecessary updates
 local lastPartyIndex = nil
@@ -126,11 +136,21 @@ function PMM.ForceUpdate()
 end
 
 -- Event handler
+frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("GROUP_ROSTER_UPDATE")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 frame:SetScript("OnEvent", function(self, event, ...)
-    if event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then
+    if event == "ADDON_LOADED" then
+        local loadedAddon = ...
+        if loadedAddon == "PartyMacroManager" then
+            -- Check if we're already in a party on addon load
+            C_Timer.After(1, function()
+                PMM.CreateOrUpdateMacro()
+            end)
+            frame:UnregisterEvent("ADDON_LOADED")
+        end
+    elseif event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then
         -- Small delay to ensure group data is ready
         C_Timer.After(0.5, PMM.CreateOrUpdateMacro)
     end
