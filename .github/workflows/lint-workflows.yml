@@ -1,0 +1,23 @@
+name: Lint Workflows
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '.github/workflows/**'
+
+jobs:
+  actionlint:
+    name: Lint GitHub Actions Workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run actionlint
+        uses: rhoborb/action-lint@v1
+        with:
+          use_default_ignore: true
