@@ -9,8 +9,7 @@ export interface IconOption {
 export interface SavedVariables {
   macroIcon: string;
   customTexturePath: string;
-  chatVerbosity: "silent" | "minimal" | "normal" | "verbose";
-  pauseRecreation: boolean;
+  chatVerbosity: "silent" | "normal" | "verbose";
 }
 
 // Union type for UI elements that can serve as anchor points in settings panels

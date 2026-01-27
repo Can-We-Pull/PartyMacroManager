@@ -12,7 +12,8 @@ export class PartyMacroManager {
   private lastPartyIndex: number | null = null;
   private frame: Frame;
   private settingsPanel: SettingsPanel;
-  private ticker: { Cancel(): void } | null = null;
+  private isLoggingOut = false;
+  private originalEventHandler: ((self: Frame, event: string, ...args: any[]) => void) | null = null;
 
   constructor() {
     // Initialize saved variables with defaults
@@ -20,7 +21,6 @@ export class PartyMacroManager {
       macroIcon: "Ability_Hunter_SniperShot",
       customTexturePath: "",
       chatVerbosity: "normal" as const,
-      pauseRecreation: false,
     };
 
     this.db = (globalThis as any).PartyMacroManagerDB as SavedVariables;
@@ -29,13 +29,12 @@ export class PartyMacroManager {
     if (this.db.macroIcon === undefined) this.db.macroIcon = "Ability_Hunter_SniperShot";
     if (this.db.customTexturePath === undefined) this.db.customTexturePath = "";
     if (this.db.chatVerbosity === undefined) this.db.chatVerbosity = "normal";
-    if (this.db.pauseRecreation === undefined) this.db.pauseRecreation = false;
 
     this.frame = CreateFrame("Frame");
     this.settingsPanel = new SettingsPanel(this);
     this.setupEvents();
     this.setupSlashCommands();
-    this.startPeriodicCheck();
+    // REMOVED: this.hookStaticPopups(); - This was causing taint!
 
     const loadMsg = `|cff00ff00[${PartyMacroManager.ADDON_NAME}]|r Loaded. Use /partymacro or /pm to manually update. Use /pm config for options.`;
     print(loadMsg);
@@ -50,20 +49,45 @@ export class PartyMacroManager {
   }
 
   private setupEvents(): void {
+    this.frame.RegisterEvent("PLAYER_LEAVING_WORLD");
     this.frame.RegisterEvent("GROUP_ROSTER_UPDATE");
     this.frame.RegisterEvent("PLAYER_ENTERING_WORLD");
 
-    this.frame.SetScript("OnEvent", ((self: Frame, event: string, ...args: any[]) => {
-      if (event === "GROUP_ROSTER_UPDATE" || event === "PLAYER_ENTERING_WORLD") {
-        // Small delay to ensure group data is ready
-        C_Timer.After(0.5, () => this.createOrUpdateMacro());
+    const eventHandler = ((self: Frame, event: string, ...args: any[]) => {
+      // Handle logout FIRST and stop all processing immediately
+      if (event === "PLAYER_LEAVING_WORLD") {
+        this.isLoggingOut = true;
+        // Unregister all events to stop receiving any more callbacks
+        this.frame.UnregisterAllEvents();
+        // Clear the event script entirely
+        this.frame.SetScript("OnEvent", null);
+        return;
       }
-    }) as any);
+      
+      // Also skip if ANY static popup is visible
+      for (let i = 1; i <= 4; i++) {
+        const popup = (globalThis as any)[`StaticPopup${i}`];
+        if (popup && popup.which) {
+          // A popup is showing, don't do anything
+          return;
+        }
+      }
+      
+      if (event === "GROUP_ROSTER_UPDATE" || event === "PLAYER_ENTERING_WORLD") {
+        // Debug: Log when we receive these events
+        if (this.db.chatVerbosity === "verbose") {
+          print(`|cff00ff00[${PartyMacroManager.ADDON_NAME}]|r Event received: ${event}`);
+        }
+        // Call directly without timer to avoid any pending callbacks during logout
+        this.createOrUpdateMacro();
+      }
+    }) as any;
 
-    // Check if we're already in a party after initialization
-    C_Timer.After(1, () => {
-      this.createOrUpdateMacro();
-    });
+    this.originalEventHandler = eventHandler;
+    this.frame.SetScript("OnEvent", eventHandler);
+
+    // Check if we're already in a party after initialization - call directly
+    this.createOrUpdateMacro();
   }
 
   private setupSlashCommands(): void {
@@ -83,30 +107,7 @@ export class PartyMacroManager {
     };
   }
 
-  private startPeriodicCheck(): void {
-    // Periodic check to detect if macro was deleted by user
-    this.ticker = C_Timer.NewTicker(5, () => {
-      // Skip if recreation is paused
-      if (this.db.pauseRecreation) {
-        return;
-      }
 
-      // Only check if we're in a party
-      const partyIndex = this.getMyPartyIndex();
-      if (partyIndex !== null) {
-        const macroIndex = GetMacroIndexByName(PartyMacroManager.MACRO_NAME);
-        if (macroIndex === 0) {
-          // Macro was deleted, recreate it
-          const verbosity = this.db.chatVerbosity;
-          if (verbosity === "normal" || verbosity === "verbose") {
-            const msg = `|cffff9900[${PartyMacroManager.ADDON_NAME}]|r Macro was deleted. Recreating...`;
-            print(msg);
-          }
-          this.createOrUpdateMacro();
-        }
-      }
-    });
-  }
 
   public getMyPartyIndex(): number | null {
     // Returns 1-5 based on party position
@@ -149,11 +150,15 @@ export class PartyMacroManager {
   }
 
   public createOrUpdateMacro(): void {
-    // Check if recreation is paused
-    if (this.db.pauseRecreation) {
+    // Don't do anything if we're logging out, in combat lockdown, or if any static popup is showing
+    if (this.isLoggingOut || InCombatLockdown() || StaticPopup_Visible("CAMP") || StaticPopup_Visible("QUIT")) {
       return;
     }
 
+    this.performMacroUpdate();
+  }
+
+  private performMacroUpdate(): void {
     const partyIndex = this.getMyPartyIndex();
 
     if (partyIndex === null) {
@@ -255,7 +260,6 @@ export class PartyMacroManager {
     this.db.macroIcon = "Ability_Hunter_SniperShot";
     this.db.customTexturePath = "";
     this.db.chatVerbosity = "normal";
-    this.db.pauseRecreation = false;
 
     if (previousVerbosity !== "silent") {
       const msg = `|cff00ff00[${PartyMacroManager.ADDON_NAME}]|r Settings reset to defaults.`;

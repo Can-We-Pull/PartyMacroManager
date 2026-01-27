@@ -7,6 +7,7 @@
 declare interface Frame extends LuaUserdata {
   RegisterEvent(event: string): void;
   UnregisterEvent(event: string): void;
+  UnregisterAllEvents(): void;
   SetScript(
     scriptType: "OnEvent" | "OnUpdate" | "OnShow" | "OnHide" | "OnEnter" | "OnLeave" | "OnClick" | "OnDragStart" | "OnDragStop",
     handler: ((this: Frame, ...args: any[]) => void) | null
@@ -94,6 +95,8 @@ declare function GetNumGroupMembers(): number;
 declare function IsInRaid(): boolean;
 declare function UnitExists(unit: string): boolean;
 declare function UnitGUID(unit: string): string;
+declare function InCombatLockdown(): boolean;
+declare function StaticPopup_Visible(which: string): boolean;
 // Returns the macro index (1-based), or 0 if not found
 declare function GetMacroIndexByName(name: string): number;
 declare function GetNumMacros(): LuaMultiReturn<[number, number]>;
@@ -149,6 +152,8 @@ declare const GameTooltip: {
   Show(): void;
   Hide(): void;
 };
+
+declare function GameTooltip_SetDefaultAnchor(tooltip: typeof GameTooltip, owner: Frame): void;
 
 // UIDropDownMenu API
 declare function UIDropDownMenu_SetWidth(frame: Frame, width: number): void;

@@ -3,17 +3,28 @@
 
 import type { PartyMacroManager } from "../PartyMacroManager";
 import type { AnchorElement, StaticPopupDialog, WoWGlobals } from "../types";
+import { callMethod } from "../types";
 
 // Type assertion helper for WoW globals
 const wowGlobals = globalThis as unknown as WoWGlobals;
 
 export class AdvancedControlsPanel {
   private addon: PartyMacroManager;
-  private pauseCheckbox?: CheckButton;
+  private dialogsSetup = false;
 
   constructor(addon: PartyMacroManager) {
     this.addon = addon;
+    // REMOVED: Don't setup dialogs during initialization to avoid tainting StaticPopupDialogs
+    // They will be setup lazily when first needed
+  }
+
+  private ensureDialogsSetup(): void {
+    if (this.dialogsSetup) {
+      return;
+    }
+    
     this.setupConfirmationDialogs();
+    this.dialogsSetup = true;
   }
 
   private setupConfirmationDialogs(): void {
@@ -21,22 +32,11 @@ export class AdvancedControlsPanel {
     wowGlobals.StaticPopupDialogs = wowGlobals.StaticPopupDialogs || {};
 
     wowGlobals.StaticPopupDialogs.PMM_CONFIRM_DELETE_MACRO = {
-      text:
-        "Are you sure you want to delete the Party Macro Manager macro?\n\n" +
-        "Do you also want to pause automatic recreation?",
-      button1: "Delete & Pause",
-      button2: "Delete Only",
-      button3: "Cancel",
+      text: "Are you sure you want to delete the Party Macro Manager macro?",
+      button1: "Delete",
+      button2: "Cancel",
       OnAccept: () => {
         this.addon.deleteMacro();
-        const db = this.addon.getDB();
-        db.pauseRecreation = true;
-        print("|cff00ff00[PartyMacroManager]|r Macro deleted and recreation paused.");
-        this.refreshUI();
-      },
-      OnCancel: () => {
-        this.addon.deleteMacro();
-        print("|cff00ff00[PartyMacroManager]|r Macro deleted. Recreation is still active.");
       },
       timeout: 0,
       whileDead: true,
@@ -47,22 +47,11 @@ export class AdvancedControlsPanel {
     wowGlobals.StaticPopupDialogs.PMM_CONFIRM_CLEAR_SETTINGS = {
       text:
         "Are you sure you want to reset all settings to defaults?\n\n" +
-        "This will clear your icon selection, custom texture, and chat preferences.\n\n" +
-        "Do you also want to pause automatic recreation?",
-      button1: "Clear & Pause",
-      button2: "Clear Only",
-      button3: "Cancel",
+        "This will clear your icon selection, custom texture, and chat preferences.",
+      button1: "Clear",
+      button2: "Cancel",
       OnAccept: () => {
         this.addon.clearSettings();
-        const db = this.addon.getDB();
-        db.pauseRecreation = true;
-        print("|cff00ff00[PartyMacroManager]|r Settings cleared and recreation paused.");
-        this.refreshUI();
-      },
-      OnCancel: () => {
-        this.addon.clearSettings();
-        print("|cff00ff00[PartyMacroManager]|r Settings cleared. Recreation is still active.");
-        this.refreshUI();
       },
       timeout: 0,
       whileDead: true,
@@ -81,77 +70,65 @@ export class AdvancedControlsPanel {
 
     const advancedSubtitle = parent.CreateFontString(undefined, "ARTWORK", "GameFontHighlightSmall");
     advancedSubtitle.SetPoint("TOPLEFT", advancedTitle, "BOTTOMLEFT", 0, -4);
-    advancedSubtitle.SetText("Manage macro recreation and settings");
+    advancedSubtitle.SetText("Manage macro and settings");
 
-    // Pause Recreation Checkbox
-    const pauseCheckbox = CreateFrame(
-      "CheckButton",
-      "PMMPauseRecreationCheckbox",
-      parent,
-      "UICheckButtonTemplate"
-    ) as CheckButton;
-    pauseCheckbox.SetPoint("TOPLEFT", advancedSubtitle, "BOTTOMLEFT", 0, -12);
-    pauseCheckbox.SetSize(24, 24);
+    // Recreate Macro Button
+    const recreateButton = CreateFrame("Button", "PMMRecreateMacroButton", parent, "UIPanelButtonTemplate") as Button;
+    recreateButton.SetPoint("TOPLEFT", advancedSubtitle, "BOTTOMLEFT", 0, -12);
+    recreateButton.SetSize(200, 25);
+    recreateButton.SetText("Recreate Macro");
 
-    const pauseLabel = pauseCheckbox.CreateFontString(undefined, "ARTWORK", "GameFontHighlight");
-    pauseLabel.SetPoint("LEFT", pauseCheckbox, "RIGHT", 5, 0);
-    pauseLabel.SetText("Pause automatic macro recreation");
-
-    pauseCheckbox.SetChecked(db.pauseRecreation);
-
-    pauseCheckbox.SetScript("OnClick", (self: CheckButton) => {
-      db.pauseRecreation = self.GetChecked();
-      const status = db.pauseRecreation ? "paused" : "resumed";
-      if (db.chatVerbosity !== "silent") {
-        print(`|cff00ff00[PartyMacroManager]|r Automatic recreation ${status}.`);
-      }
+    recreateButton.SetScript("OnClick", () => {
+      this.addon.forceUpdate();
     });
 
-    pauseCheckbox.SetScript("OnEnter", (self: CheckButton) => {
-      GameTooltip.SetOwner(self, "ANCHOR_RIGHT");
-      GameTooltip.SetText("Pause Macro Recreation", 1, 1, 1);
-      GameTooltip.AddLine(
-        "When enabled, the addon will not automatically create or update the macro.",
+    recreateButton.SetScript("OnEnter", (self: Button) => {
+      callMethod(GameTooltip, "SetOwner", self, "ANCHOR_RIGHT");
+      callMethod(GameTooltip, "SetText", "Recreate Party Macro", 1, 1, 1);
+      callMethod(
+        GameTooltip,
+        "AddLine",
+        "Forces the addon to recreate or update the PartyInterrupt macro based on your current party position.",
         undefined,
         undefined,
         undefined,
         true
       );
-      GameTooltip.Show();
+      callMethod(GameTooltip, "Show");
     });
 
-    pauseCheckbox.SetScript("OnLeave", () => {
-      GameTooltip.Hide();
+    recreateButton.SetScript("OnLeave", () => {
+      callMethod(GameTooltip, "Hide");
     });
-
-    this.pauseCheckbox = pauseCheckbox;
 
     // Delete Macro Button
     const deleteButton = CreateFrame("Button", "PMMDeleteMacroButton", parent, "UIPanelButtonTemplate") as Button;
-    deleteButton.SetPoint("TOPLEFT", pauseCheckbox, "BOTTOMLEFT", 0, -16);
+    deleteButton.SetPoint("TOPLEFT", recreateButton, "BOTTOMLEFT", 0, -8);
     deleteButton.SetSize(200, 25);
     deleteButton.SetText("Delete Macro");
 
     deleteButton.SetScript("OnClick", () => {
+      this.ensureDialogsSetup();
       StaticPopup_Show("PMM_CONFIRM_DELETE_MACRO");
     });
 
     deleteButton.SetScript("OnEnter", (self: Button) => {
-      GameTooltip.SetOwner(self, "ANCHOR_RIGHT");
-      GameTooltip.SetText("Delete Party Macro Manager Macro", 1, 1, 1);
-      GameTooltip.AddLine(
-        "Removes the PartyInterrupt macro from your macros. " +
-          "You can choose to pause recreation to prevent it from being recreated.",
+      callMethod(GameTooltip, "SetOwner", self, "ANCHOR_RIGHT");
+      callMethod(GameTooltip, "SetText", "Delete Party Macro Manager Macro", 1, 1, 1);
+      callMethod(
+        GameTooltip,
+        "AddLine",
+        "Removes the PartyInterrupt macro from your macros.",
         undefined,
         undefined,
         undefined,
         true
       );
-      GameTooltip.Show();
+      callMethod(GameTooltip, "Show");
     });
 
     deleteButton.SetScript("OnLeave", () => {
-      GameTooltip.Hide();
+      callMethod(GameTooltip, "Hide");
     });
 
     // Clear Settings Button
@@ -161,13 +138,16 @@ export class AdvancedControlsPanel {
     clearButton.SetText("Clear All Settings");
 
     clearButton.SetScript("OnClick", () => {
+      this.ensureDialogsSetup();
       StaticPopup_Show("PMM_CONFIRM_CLEAR_SETTINGS");
     });
 
     clearButton.SetScript("OnEnter", (self: Button) => {
-      GameTooltip.SetOwner(self, "ANCHOR_RIGHT");
-      GameTooltip.SetText("Clear All Settings", 1, 1, 1);
-      GameTooltip.AddLine(
+      callMethod(GameTooltip, "SetOwner", self, "ANCHOR_RIGHT");
+      callMethod(GameTooltip, "SetText", "Clear All Settings", 1, 1, 1);
+      callMethod(
+        GameTooltip,
+        "AddLine",
         "Resets all addon settings to their default values, " +
           "including icon selection, custom texture, and chat verbosity.",
         undefined,
@@ -175,11 +155,11 @@ export class AdvancedControlsPanel {
         undefined,
         true
       );
-      GameTooltip.Show();
+      callMethod(GameTooltip, "Show");
     });
 
     clearButton.SetScript("OnLeave", () => {
-      GameTooltip.Hide();
+      callMethod(GameTooltip, "Hide");
     });
 
     // Warning text
@@ -190,12 +170,5 @@ export class AdvancedControlsPanel {
 
     // Return anchor point for next section (if needed in future)
     return warningText as any as Frame;
-  }
-
-  private refreshUI(): void {
-    if (this.pauseCheckbox) {
-      const db = this.addon.getDB();
-      this.pauseCheckbox.SetChecked(db.pauseRecreation);
-    }
   }
 }

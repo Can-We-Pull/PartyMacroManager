@@ -2,6 +2,7 @@
 /** @noSelfInFile */
 
 import type { IconOption, AnchorElement } from "../types";
+import { callMethod } from "../types";
 import type { PartyMacroManager } from "../PartyMacroManager";
 import * as iconOptionsData from "../data/iconOptions.json";
 
@@ -78,16 +79,16 @@ export class IconSelectionPanel {
 
       button.SetScript("OnEnter", () => {
         border.Show();
-        GameTooltip.SetOwner(button, "ANCHOR_RIGHT");
-        GameTooltip.SetText(iconData.name);
-        GameTooltip.Show();
+        callMethod(GameTooltip, "SetOwner", button, "ANCHOR_RIGHT");
+        callMethod(GameTooltip, "SetText", iconData.name);
+        callMethod(GameTooltip, "Show");
       });
 
       button.SetScript("OnLeave", () => {
         if (db.macroIcon !== iconData.texture || db.customTexturePath !== "") {
           border.Hide();
         }
-        GameTooltip.Hide();
+        callMethod(GameTooltip, "Hide");
       });
 
       button.SetScript("OnClick", () => {

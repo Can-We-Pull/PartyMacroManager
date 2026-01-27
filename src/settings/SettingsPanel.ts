@@ -71,7 +71,7 @@ export class SettingsPanel {
 
     // Calculate and set scroll child height
     let totalHeight = 600; // Default safe height
-    if (lastAnchor) {
+    if (lastAnchor !== undefined) {
       // Use tryCallMethod helper for proper Lua colon syntax (see types.ts for explanation)
       const bottom = tryCallMethod<AnchorElement, number>(lastAnchor, "GetBottom");
       if (bottom !== undefined) {
