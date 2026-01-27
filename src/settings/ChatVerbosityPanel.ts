@@ -6,7 +6,7 @@ import type { AnchorElement } from "../types";
 
 interface VerbosityOption {
   text: string;
-  value: "silent" | "minimal" | "normal" | "verbose";
+  value: "silent" | "normal" | "verbose";
 }
 
 export class ChatVerbosityPanel {
@@ -31,7 +31,6 @@ export class ChatVerbosityPanel {
     // Verbosity dropdown
     const verbosityOptions: VerbosityOption[] = [
       { text: "Silent - No messages", value: "silent" },
-      { text: "Minimal - Errors only", value: "minimal" },
       { text: "Normal - Important updates", value: "normal" },
       { text: "Verbose - All updates", value: "verbose" },
     ];
