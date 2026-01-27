@@ -48,6 +48,12 @@ function run(command, description) {
 async function build() {
   console.log('\n📦 Building PartyMacroManager\n');
 
+  // Get version from command line args or package.json
+  const version = process.argv[2];
+  if (version) {
+    log.info(`Building version ${version}`);
+  }
+
   // Clean dist directory
   log.step('Cleaning dist directory');
   if (fs.existsSync(DIST_DIR)) {
@@ -61,11 +67,13 @@ async function build() {
   log.success('Transpiled TypeScript to Lua');
 
   // Generate .toc file
-  run('node scripts/generate-toc.mjs', 'Generating .toc file');
+  const tocCommand = version ? `node scripts/generate-toc.mjs ${version}` : 'node scripts/generate-toc.mjs';
+  run(tocCommand, 'Generating .toc file');
   log.success('Generated .toc file');
 
   // Create zip file
-  run('node scripts/create-zip.mjs', 'Creating distribution zip');
+  const zipCommand = version ? `node scripts/create-zip.mjs ${version}` : 'node scripts/create-zip.mjs';
+  run(zipCommand, 'Creating distribution zip');
   log.success('Created distribution zip');
 
   console.log('\n✅ Build complete!\n');
