@@ -103,7 +103,7 @@ function Tests:PartyMessageFormatCustom()
         "INT %i",
         "%i - INTERRUPTED"
     }
-    
+
     for _, format in ipairs(testFormats) do
         local result = string.gsub(format, "%%i", "{rt1}", 1)
         -- Result should not contain %i anymore

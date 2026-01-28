@@ -1,12 +1,12 @@
 // ChatVerbosityPanel.ts - Chat verbosity selector UI component
 /** @noSelfInFile */
 
-import type { PartyMacroManager } from "../PartyMacroManager";
-import type { AnchorElement } from "../types";
+import type { PartyMacroManager } from '../PartyMacroManager';
+import type { AnchorElement } from '../types';
 
 interface VerbosityOption {
   text: string;
-  value: "silent" | "normal" | "verbose";
+  value: 'silent' | 'normal' | 'verbose';
 }
 
 export class ChatVerbosityPanel {
@@ -20,23 +20,23 @@ export class ChatVerbosityPanel {
     const db = this.addon.getDB();
 
     // Chat Verbosity Section
-    const chatTitle = parent.CreateFontString(undefined, "ARTWORK", "GameFontNormal");
-    chatTitle.SetPoint("TOPLEFT", anchorFrame, "BOTTOMLEFT", -5, -24);
-    chatTitle.SetText("Chat Message Frequency:");
+    const chatTitle = parent.CreateFontString(undefined, 'ARTWORK', 'GameFontNormal');
+    chatTitle.SetPoint('TOPLEFT', anchorFrame, 'BOTTOMLEFT', -5, -24);
+    chatTitle.SetText('Chat Message Frequency:');
 
-    const chatSubtitle = parent.CreateFontString(undefined, "ARTWORK", "GameFontHighlightSmall");
-    chatSubtitle.SetPoint("TOPLEFT", chatTitle, "BOTTOMLEFT", 0, -4);
-    chatSubtitle.SetText("Control how often the addon sends messages to chat");
+    const chatSubtitle = parent.CreateFontString(undefined, 'ARTWORK', 'GameFontHighlightSmall');
+    chatSubtitle.SetPoint('TOPLEFT', chatTitle, 'BOTTOMLEFT', 0, -4);
+    chatSubtitle.SetText('Control how often the addon sends messages to chat');
 
     // Verbosity dropdown
     const verbosityOptions: VerbosityOption[] = [
-      { text: "Silent - No messages", value: "silent" },
-      { text: "Normal - Important updates", value: "normal" },
-      { text: "Verbose - All updates", value: "verbose" },
+      { text: 'Silent - No messages', value: 'silent' },
+      { text: 'Normal - Important updates', value: 'normal' },
+      { text: 'Verbose - All updates', value: 'verbose' },
     ];
 
-    const dropdown = CreateFrame("Frame", "PartyMacroVerbosityDropdown", parent, "UIDropDownMenuTemplate") as Frame;
-    dropdown.SetPoint("TOPLEFT", chatSubtitle, "BOTTOMLEFT", -15, -8);
+    const dropdown = CreateFrame('Frame', 'PartyMacroVerbosityDropdown', parent, 'UIDropDownMenuTemplate') as Frame;
+    dropdown.SetPoint('TOPLEFT', chatSubtitle, 'BOTTOMLEFT', -15, -8);
 
     UIDropDownMenu_SetWidth(dropdown, 200);
 
@@ -49,7 +49,7 @@ export class ChatVerbosityPanel {
         info.func = () => {
           db.chatVerbosity = option.value;
           UIDropDownMenu_SetSelectedValue(dropdown, option.value);
-          print(`|cff00ff00[PartyMacroManager]|r Chat verbosity set to: ${option.text}`);
+          this.addon.log(`Chat verbosity set to: ${option.text}`, 'info');
         };
         info.checked = db.chatVerbosity === option.value;
         UIDropDownMenu_AddButton(info);
