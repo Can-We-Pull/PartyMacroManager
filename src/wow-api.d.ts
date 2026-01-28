@@ -9,10 +9,25 @@ declare interface Frame extends LuaUserdata {
   UnregisterEvent(event: string): void;
   UnregisterAllEvents(): void;
   SetScript(
-    scriptType: "OnEvent" | "OnUpdate" | "OnShow" | "OnHide" | "OnEnter" | "OnLeave" | "OnClick" | "OnDragStart" | "OnDragStop",
+    scriptType:
+      | 'OnEvent'
+      | 'OnUpdate'
+      | 'OnShow'
+      | 'OnHide'
+      | 'OnEnter'
+      | 'OnLeave'
+      | 'OnClick'
+      | 'OnDragStart'
+      | 'OnDragStop',
     handler: ((this: Frame, ...args: any[]) => void) | null
   ): void;
-  SetPoint(point: string, relativeTo?: Frame | FontString, relativePoint?: string, xOffset?: number, yOffset?: number): void;
+  SetPoint(
+    point: string,
+    relativeTo?: Frame | FontString,
+    relativePoint?: string,
+    xOffset?: number,
+    yOffset?: number
+  ): void;
   SetSize(width: number, height: number): void;
   SetWidth(width: number): void;
   SetHeight(height: number): void;
@@ -44,7 +59,13 @@ declare interface Texture extends LuaUserdata {
 }
 
 declare interface FontString extends LuaUserdata {
-  SetPoint(point: string, relativeTo?: Frame | FontString, relativePoint?: string, xOffset?: number, yOffset?: number): void;
+  SetPoint(
+    point: string,
+    relativeTo?: Frame | FontString,
+    relativePoint?: string,
+    xOffset?: number,
+    yOffset?: number
+  ): void;
   SetText(text: string): void;
   SetTextColor(r: number, g: number, b: number, a?: number): void;
   GetBottom(): number | undefined;
@@ -85,7 +106,7 @@ declare interface Slider extends Frame {
 declare const UIParent: Frame;
 
 declare function CreateFrame(
-  frameType: "Frame" | "Button" | "CheckButton" | "EditBox" | "Slider" | "ScrollFrame",
+  frameType: 'Frame' | 'Button' | 'CheckButton' | 'EditBox' | 'Slider' | 'ScrollFrame',
   name?: string,
   parent?: Frame,
   template?: string
@@ -102,31 +123,20 @@ declare function GetMacroIndexByName(name: string): number;
 declare function GetNumMacros(): LuaMultiReturn<[number, number]>;
 declare function GetMacroInfo(index: number): string | undefined;
 declare function GetAddOnInfo(name: string): LuaMultiReturn<[string | undefined, string | undefined]>;
-declare function CreateMacro(
-  name: string,
-  icon: string | number,
-  body: string,
-  perCharacter?: boolean
-): number;
-declare function EditMacro(
-  index: number | string,
-  name?: string,
-  icon?: string | number,
-  body?: string
-): void;
+declare function CreateMacro(name: string, icon: string | number, body: string, perCharacter?: boolean): number;
+declare function EditMacro(index: number | string, name?: string, icon?: string | number, body?: string): void;
 declare function DeleteMacro(name: string | number): void;
 declare function print(...args: any[]): void;
-declare function pcall<T extends (...args: any[]) => any>(fn: T, ...args: Parameters<T>): LuaMultiReturn<[true, ReturnType<T>] | [false, string]>;
+declare function pcall<T extends (...args: any[]) => any>(
+  fn: T,
+  ...args: Parameters<T>
+): LuaMultiReturn<[true, ReturnType<T>] | [false, string]>;
 declare function tostring(value: any): string;
 
 // C_Timer API
 declare namespace C_Timer {
   function After(seconds: number, callback: () => void): void;
-  function NewTicker(
-    seconds: number,
-    callback: () => void,
-    iterations?: number
-  ): { Cancel(): void };
+  function NewTicker(seconds: number, callback: () => void, iterations?: number): { Cancel(): void };
 }
 
 // Settings API
@@ -136,11 +146,7 @@ declare interface SettingsCategory {
 
 declare namespace Settings {
   function OpenToCategory(categoryIDOrName: string | number): void;
-  function RegisterCanvasLayoutCategory(
-    category: any,
-    name: string,
-    order?: number
-  ): SettingsCategory;
+  function RegisterCanvasLayoutCategory(category: any, name: string, order?: number): SettingsCategory;
   function RegisterAddOnCategory(category: SettingsCategory): void;
 }
 
@@ -173,7 +179,7 @@ declare const SlashCmdList: Record<string, (msg: string, editBox?: any) => void>
 declare let PartyMacroManagerDB: {
   macroIcon: string;
   customTexturePath: string;
-  chatVerbosity: "silent" | "minimal" | "normal" | "verbose";
+  chatVerbosity: 'silent' | 'minimal' | 'normal' | 'verbose';
   pauseRecreation: boolean;
 };
 
@@ -210,7 +216,7 @@ declare namespace string {
   function match(str: string, pattern: string): string | undefined;
 }
 
-// Table functions  
+// Table functions
 declare namespace table {
   function insert<T>(list: T[], value: T): void;
   function insert<T>(list: T[], pos: number, value: T): void;

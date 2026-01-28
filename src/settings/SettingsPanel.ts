@@ -1,26 +1,29 @@
 // SettingsPanel.ts - Main settings panel coordinator
 /** @noSelfInFile */
 
-import type { PartyMacroManager } from "../PartyMacroManager";
-import type { AnchorElement } from "../types";
-import { tryCallMethod } from "../types";
-import { IconSelectionPanel } from "./IconSelectionPanel";
-import { CustomTexturePanel } from "./CustomTexturePanel";
-import { ChatVerbosityPanel } from "./ChatVerbosityPanel";
-import { AdvancedControlsPanel } from "./AdvancedControlsPanel";
+import type { PartyMacroManager } from '../PartyMacroManager';
+import type { AnchorElement } from '../types';
+import { tryCallMethod } from '../types';
+import { IconDropdownPanel } from './IconDropdownPanel';
+import { CustomTexturePanel } from './CustomTexturePanel';
+import { PartyMessagePanel } from './PartyMessagePanel';
+import { ChatVerbosityPanel } from './ChatVerbosityPanel';
+import { AdvancedControlsPanel } from './AdvancedControlsPanel';
 
 export class SettingsPanel {
   private addon: PartyMacroManager;
-  private iconSelection: IconSelectionPanel;
+  private iconSelection: IconDropdownPanel;
   private customTexture: CustomTexturePanel;
+  private partyMessage: PartyMessagePanel;
   private chatVerbosity: ChatVerbosityPanel;
   private advancedControls: AdvancedControlsPanel;
   private categoryID?: number;
 
   constructor(addon: PartyMacroManager) {
     this.addon = addon;
-    this.iconSelection = new IconSelectionPanel(addon);
+    this.iconSelection = new IconDropdownPanel(addon);
     this.customTexture = new CustomTexturePanel(addon);
+    this.partyMessage = new PartyMessagePanel(addon);
     this.chatVerbosity = new ChatVerbosityPanel(addon);
     this.advancedControls = new AdvancedControlsPanel(addon);
 
@@ -35,24 +38,24 @@ export class SettingsPanel {
   }
 
   private createOptionsPanel(): void {
-    const panel = CreateFrame("Frame") as Frame;
-    panel.name = "Party Macro Manager";
+    const panel = CreateFrame('Frame') as Frame;
+    panel.name = 'Party Macro Manager';
 
     // Create a scroll frame (use panel as parent, not UIParent)
-    const scrollFrame = CreateFrame("ScrollFrame", undefined, panel, "UIPanelScrollFrameTemplate") as Frame;
-    scrollFrame.SetPoint("TOPLEFT", panel, "TOPLEFT", 3, -4);
-    scrollFrame.SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -27, 4);
+    const scrollFrame = CreateFrame('ScrollFrame', undefined, panel, 'UIPanelScrollFrameTemplate') as Frame;
+    scrollFrame.SetPoint('TOPLEFT', panel, 'TOPLEFT', 3, -4);
+    scrollFrame.SetPoint('BOTTOMRIGHT', panel, 'BOTTOMRIGHT', -27, 4);
 
     // Create the scroll child (content container)
-    const scrollChild = CreateFrame("Frame") as Frame;
+    const scrollChild = CreateFrame('Frame') as Frame;
     scrollFrame.SetScrollChild(scrollChild);
     scrollChild.SetWidth(650);
     scrollChild.SetHeight(1); // Will be adjusted dynamically
 
     // Title
-    const title = scrollChild.CreateFontString(undefined, "ARTWORK", "GameFontNormalLarge");
-    title.SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 16, -16);
-    title.SetText("Party Macro Manager Options");
+    const title = scrollChild.CreateFontString(undefined, 'ARTWORK', 'GameFontNormalLarge');
+    title.SetPoint('TOPLEFT', scrollChild, 'TOPLEFT', 16, -16);
+    title.SetText('Party Macro Manager Options');
 
     // Create each settings section
     let lastAnchor: FontString | Frame = title;
@@ -62,6 +65,9 @@ export class SettingsPanel {
 
     // Custom Texture Section
     lastAnchor = this.customTexture.create(scrollChild, lastAnchor);
+
+    // Party Message Section
+    lastAnchor = this.partyMessage.create(scrollChild, lastAnchor);
 
     // Chat Verbosity Section
     lastAnchor = this.chatVerbosity.create(scrollChild, lastAnchor);
@@ -73,7 +79,7 @@ export class SettingsPanel {
     let totalHeight = 600; // Default safe height
     if (lastAnchor !== undefined) {
       // Use tryCallMethod helper for proper Lua colon syntax (see types.ts for explanation)
-      const bottom = tryCallMethod<AnchorElement, number>(lastAnchor, "GetBottom");
+      const bottom = tryCallMethod<AnchorElement, number>(lastAnchor, 'GetBottom');
       if (bottom !== undefined) {
         totalHeight = math.abs(bottom) + 100;
       }
@@ -87,7 +93,7 @@ export class SettingsPanel {
     const category = Settings.RegisterCanvasLayoutCategory(panel, panel.name!);
     Settings.RegisterAddOnCategory(category);
     // Use tryCallMethod helper for proper Lua colon syntax
-    const categoryID = tryCallMethod<typeof category, number>(category, "GetID");
+    const categoryID = tryCallMethod<typeof category, number>(category, 'GetID');
     if (categoryID !== undefined) {
       this.categoryID = categoryID;
     }

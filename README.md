@@ -93,6 +93,12 @@ curl https://get.volta.sh | bash
 | `npm run lint:workflows` | Lint GitHub Actions workflow files |
 | `npm run lint:fix` | Auto-format and fix all issues |
 
+### Utilities
+| Command | Description |
+|---------|-------------|
+| `npm run generate-typings` | Generate WoW API TypeScript definitions |
+| `npm run export-icons` | Generate icon list from WoW (see [Icon Generation Guide](docs/ICON_GENERATION.md)) |
+
 ## Project Structure
 
 ```
@@ -104,12 +110,13 @@ PartyMacroManager/
 │   ├── wow-api.d.ts                   # WoW API type definitions
 │   ├── settings/                      # Settings UI classes
 │   │   ├── SettingsPanel.ts           # Settings panel coordinator
-│   │   ├── IconSelectionPanel.ts      # Icon picker UI
+│   │   ├── IconDropdownPanel.ts       # Icon picker with search & modal browser
 │   │   ├── CustomTexturePanel.ts      # Custom texture input UI
+│   │   ├── PartyMessagePanel.ts       # Party message format customization
 │   │   ├── ChatVerbosityPanel.ts      # Chat verbosity selector UI
 │   │   └── AdvancedControlsPanel.ts   # Advanced controls UI
 │   └── data/                          # Data files
-│       └── iconOptions.json           # Icon presets configuration
+│       └── iconOptions.json           # Icon presets for dropdown
 ├── dist/                               # Build output (generated)
 │   ├── dev/                           # Development build
 │   │   ├── index.lua                  # Bundled transpiled TypeScript

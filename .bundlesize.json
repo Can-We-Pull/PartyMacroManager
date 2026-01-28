@@ -1,5 +1,5 @@
 {
-  "size": 33791,
-  "timestamp": "2026-01-26T18:41:56.153Z",
+  "size": 45926,
+  "timestamp": "2026-01-28T04:01:27.864Z",
   "note": "Baseline updated. Run tests to verify bundle size stays within threshold."
 }
