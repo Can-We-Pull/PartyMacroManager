@@ -21,6 +21,7 @@ export class PartyMacroManager {
       macroIcon: "Ability_Hunter_SniperShot",
       customTexturePath: "",
       chatVerbosity: "normal" as const,
+      partyMessageFormat: "Interrupting %i",
     };
 
     this.db = (globalThis as any).PartyMacroManagerDB as SavedVariables;
@@ -29,6 +30,7 @@ export class PartyMacroManager {
     if (this.db.macroIcon === undefined) this.db.macroIcon = "Ability_Hunter_SniperShot";
     if (this.db.customTexturePath === undefined) this.db.customTexturePath = "";
     if (this.db.chatVerbosity === undefined) this.db.chatVerbosity = "normal";
+    if (this.db.partyMessageFormat === undefined) this.db.partyMessageFormat = "Interrupting %i";
 
     this.frame = CreateFrame("Frame");
     this.settingsPanel = new SettingsPanel(this);
@@ -181,7 +183,11 @@ export class PartyMacroManager {
 
     // Build macro text - use string.char(10) for newline since \n gets double-escaped by TSTL
     const newline = string.char(10);
-    const macroText = `/focus${newline}${string.format("/tm %d", partyIndex)}${newline}${string.format("/p Interrupting {rt%d}", partyIndex)}`;
+    // Replace %i in the party message format with the raid marker (use Lua's gsub directly)
+    const messageFormat = this.db.partyMessageFormat || "Interrupting %i";
+    const raidMarker = string.format("{rt%d}", partyIndex);
+    const partyMessage = string.gsub(messageFormat, "%%i", raidMarker, 1)[0]; // gsub returns (result, count)
+    const macroText = `/focus${newline}${string.format("/tm %d", partyIndex)}${newline}/p ${partyMessage}`;
 
     // Determine which icon to use
     let selectedIcon: string;
@@ -260,6 +266,7 @@ export class PartyMacroManager {
     this.db.macroIcon = "Ability_Hunter_SniperShot";
     this.db.customTexturePath = "";
     this.db.chatVerbosity = "normal";
+    this.db.partyMessageFormat = "Interrupting %i";
 
     if (previousVerbosity !== "silent") {
       const msg = `|cff00ff00[${PartyMacroManager.ADDON_NAME}]|r Settings reset to defaults.`;

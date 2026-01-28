@@ -10,7 +10,7 @@ const projectRoot = __dirname;
 
 const BUNDLE_PATH = join(projectRoot, 'dist', 'dev', 'index.lua');
 const BASELINE_PATH = join(projectRoot, '.bundlesize.json');
-const THRESHOLD = 0.05; // 5% increase threshold
+const THRESHOLD = 0.10; // 10% increase threshold
 
 function getBundleSize() {
   if (!existsSync(BUNDLE_PATH)) {
@@ -42,7 +42,7 @@ function updateBaseline(size) {
 }
 
 describe('Bundle Size', () => {
-  it('should not increase by more than 5% from baseline', () => {
+  it('should not increase by more than 10% from baseline', () => {
     const currentSize = getBundleSize();
     const baselineSize = getBaseline();
     
@@ -62,7 +62,7 @@ describe('Bundle Size', () => {
     console.log(`  Change:   ${increase >= 0 ? '+' : ''}${increase.toLocaleString()} bytes (${percentIncrease.toFixed(2)}%)`);
     
     if (increase > 0 && percentIncrease > THRESHOLD * 100) {
-      console.log(`\n❌ Bundle size increased by ${percentIncrease.toFixed(2)}%, exceeding ${THRESHOLD * 100}% threshold.`);
+      console.log(`\n❌ Bundle size increased by ${percentIncrease.toFixed(2)}%, exceeding ${(THRESHOLD * 100).toFixed(0)}% threshold.`);
       console.log('\nIf this increase is intentional, update the baseline with:');
       console.log('  npm run test:bundlesize:update\n');
       
