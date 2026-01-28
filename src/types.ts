@@ -3,13 +3,14 @@
 
 export interface IconOption {
   name: string;
-  texture: string;
+  texture: string | number;
 }
 
 export interface SavedVariables {
   macroIcon: string;
   customTexturePath: string;
   chatVerbosity: "silent" | "normal" | "verbose";
+  partyMessageFormat?: string;
 }
 
 // Union type for UI elements that can serve as anchor points in settings panels

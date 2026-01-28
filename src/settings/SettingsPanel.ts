@@ -4,23 +4,26 @@
 import type { PartyMacroManager } from "../PartyMacroManager";
 import type { AnchorElement } from "../types";
 import { tryCallMethod } from "../types";
-import { IconSelectionPanel } from "./IconSelectionPanel";
+import { IconDropdownPanel } from "./IconDropdownPanel";
 import { CustomTexturePanel } from "./CustomTexturePanel";
+import { PartyMessagePanel } from "./PartyMessagePanel";
 import { ChatVerbosityPanel } from "./ChatVerbosityPanel";
 import { AdvancedControlsPanel } from "./AdvancedControlsPanel";
 
 export class SettingsPanel {
   private addon: PartyMacroManager;
-  private iconSelection: IconSelectionPanel;
+  private iconSelection: IconDropdownPanel;
   private customTexture: CustomTexturePanel;
+  private partyMessage: PartyMessagePanel;
   private chatVerbosity: ChatVerbosityPanel;
   private advancedControls: AdvancedControlsPanel;
   private categoryID?: number;
 
   constructor(addon: PartyMacroManager) {
     this.addon = addon;
-    this.iconSelection = new IconSelectionPanel(addon);
+    this.iconSelection = new IconDropdownPanel(addon);
     this.customTexture = new CustomTexturePanel(addon);
+    this.partyMessage = new PartyMessagePanel(addon);
     this.chatVerbosity = new ChatVerbosityPanel(addon);
     this.advancedControls = new AdvancedControlsPanel(addon);
 
@@ -62,6 +65,9 @@ export class SettingsPanel {
 
     // Custom Texture Section
     lastAnchor = this.customTexture.create(scrollChild, lastAnchor);
+
+    // Party Message Section
+    lastAnchor = this.partyMessage.create(scrollChild, lastAnchor);
 
     // Chat Verbosity Section
     lastAnchor = this.chatVerbosity.create(scrollChild, lastAnchor);
